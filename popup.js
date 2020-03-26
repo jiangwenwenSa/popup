@@ -6,13 +6,14 @@
     sa:{},
     //基本信息
     info:{},
+    lib_version: '0.1',
     //获取的配置和参数
     defaultPara:{
       platform: 'H5'    
     },
    //服务器数据   注意：不要修改这个数据，修改会导致引用类型错误！！！这个数据只能在ajax后直接赋值更新！！！
     serverData:{},
-    //所有的本地规则数据
+    //所有的本地规则数据，注意：这是一个引用的数据！！！后人不要随意修改这个数据，且在使用前必须先判断 localData 是否是空对象，如果是空的，就不要执行了。
     localData: {
       // 本地新增的数据
       global_popup_count: [],
@@ -1154,18 +1155,23 @@
       return false;
     }
 
-
-    if(!_.isString(popup.info.api_base_url) || popup.info.api_base_url === '' || popup.info.api_base_url.slice(0,4) !== 'http'){
+    // api_base_url是否有效
+    if(!_.isString(popup.info.api_base_url) || popup.info.api_base_url.slice(0,4) !== 'http'){
+      //如果不是有效的http开头的字符串
       popup.log('popup 必须填写有效 api_base_url');
-      return false;    
+      return false;
     }else {
-      if(popup.info.api_base_url.slice(0,5) === 'http:' && location.protocol === 'https'){
+      //如果是有效的http开头的字符串
+      if(popup.info.api_base_url.slice(0,5) === 'http:' && location.protocol === 'https:'){
         popup.log('您的当前页面是https的地址，api_base_url 也必须是https！');
+        return false;
+      }else {
+        popup.info.api_base_url = popup.info.api_base_url.slice(-1) === '/' ? popup.info.api_base_url.slice(0,-1):popup.info.api_base_url; 
       }
-      popup.info.api_base_url = popup.info.api_base_url.slice(-1) === '/' ? popup.info.api_base_url.slice(0,-1):popup.info.api_base_url; 
     }
 
 
+    // project是否有效
     if(!popup.info.project){
       popup.info.project = _.URL(sa.para.server_url).searchParams.get('project') || 'default';
     }
@@ -2367,6 +2373,11 @@
     is_listen: true,
     // 请求间隔时间
     interval_time: 10 * 60 * 1000,
+    // 保存的interval
+    save_interval:null,
+    // 获取数据的interval
+    data_interval:null,
+
     /**
      * 筛选出需要做转化的plans
      */
@@ -2571,11 +2582,11 @@
     //定时获取数据
     setIntervalTime: function (time) {
       var that = this;
-      setTimeout(function () {
+      this.data_interval = setTimeout(function () {
         that.getDataFromServer();
       }, time);
     },
-    //更新数据
+    //设置首次监听，先更新数据-后监听
     setFirstListen: function () {
       var that = this;
       this.getDataFromServer().then(function () {
@@ -2587,7 +2598,7 @@
      */
     updateLocalData: function() {
      var local_data = JSON.stringify(popup.localData);
-      setInterval(function(){
+     this.save_interval = setInterval(function(){
         var localData = JSON.stringify(popup.localData);
           if( local_data !== localData ){
             popup.store.save(function(data){
@@ -2599,24 +2610,45 @@
     //判断从何处获取数据
     initial: function () {
       popup.store.init();
-      this.updateLocalData();
       var last_time = popup.localData.local_update_time;
       var current_time = (new Date()).getTime();
+      // 本地没数据，首次，直接用server
       if (!_.isNumber(last_time)) {
         this.setFirstListen();
-        return false;
+      }else {
+      // 本地有数据
+        var remain_time = current_time - last_time;
+        //数据异常 或者 超过10分钟
+        if (remain_time <= 0 || remain_time >= this.interval_time) {
+          this.setFirstListen();
+        } else {
+          //在10分钟内
+          this.setIntervalTime(remain_time);
+          this.setListenEvent();
+          this.registerListen();
+        }
       }
-      var remain_time = current_time - last_time;
-      //数据异常
-      if (remain_time <= 0) {
-        this.setFirstListen();
-      } else if (remain_time >= this.interval_time) {
-        this.setFirstListen();
-      } else {
-        this.setIntervalTime(remain_time);
-        this.setListenEvent();
-        this.registerListen();
-      }
+      // 初始化完成后，执行数据自动保存
+      this.updateLocalData();
+
+    },
+    // 
+    stopAllState: function(){
+      // 清空监听 只要清空rule
+      popup.eventRule = {};
+      // 清空定时器     // 清楚定时保存
+      this.data_interval && clearTimeout(this.data_interval);
+      this.save_interval && clearInterval(this.save_interval);
+      // locadata 设置成空
+      popup.localData = {};
+    },
+    startState: function(){
+      // 重新获取数据，并开始监听，保存数据
+      var that = this;
+      this.getDataFromServer().then(function(){
+        that.updateLocalData();
+      });
+
     }
 
   };
