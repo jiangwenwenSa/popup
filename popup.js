@@ -1159,7 +1159,7 @@
       popup.log('popup 必须填写有效 api_base_url');
       return false;    
     }
-    if(popup.info.api_base_url.slice(0,5) === 'http:' && location.protocol === 'https'){
+    if(popup.info.api_base_url.slice(0,5) === 'http:' && location.protocol === 'https:'){
       popup.log('您的当前页面是https的地址，api_base_url 也必须是https！');
       return false;
     }
