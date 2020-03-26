@@ -41,7 +41,60 @@
   !function(e,n){"object"==typeof exports&&"undefined"!=typeof module?n():"function"==typeof define&&define.amd?define(n):n();}(0,function(){function e(e){var n=this.constructor;return this.then(function(t){return n.resolve(e()).then(function(){return t})},function(t){return n.resolve(e()).then(function(){return n.reject(t)})})}function n(e){return !(!e||"undefined"==typeof e.length)}function t(){}function o(e){if(!(this instanceof o))throw new TypeError("Promises must be constructed via new");if("function"!=typeof e)throw new TypeError("not a function");this._state=0,this._handled=!1,this._value=undefined,this._deferreds=[],c(e,this);}function r(e,n){for(;3===e._state;)e=e._value;0!==e._state?(e._handled=!0,o._immediateFn(function(){var t=1===e._state?n.onFulfilled:n.onRejected;if(null!==t){var o;try{o=t(e._value);}catch(r){return void f(n.promise,r)}i(n.promise,o);}else (1===e._state?i:f)(n.promise,e._value);})):e._deferreds.push(n);}function i(e,n){try{if(n===e)throw new TypeError("A promise cannot be resolved with itself.");if(n&&("object"==typeof n||"function"==typeof n)){var t=n.then;if(n instanceof o)return e._state=3,e._value=n,void u(e);if("function"==typeof t)return void c(function(e,n){return function(){e.apply(n,arguments);}}(t,n),e)}e._state=1,e._value=n,u(e);}catch(r){f(e,r);}}function f(e,n){e._state=2,e._value=n,u(e);}function u(e){2===e._state&&0===e._deferreds.length&&o._immediateFn(function(){e._handled||o._unhandledRejectionFn(e._value);});for(var n=0,t=e._deferreds.length;t>n;n++)r(e,e._deferreds[n]);e._deferreds=null;}function c(e,n){var t=!1;try{e(function(e){t||(t=!0,i(n,e));},function(e){t||(t=!0,f(n,e));});}catch(o){if(t)return;t=!0,f(n,o);}}var a=setTimeout;o.prototype["catch"]=function(e){return this.then(null,e)},o.prototype.then=function(e,n){var o=new this.constructor(t);return r(this,new function(e,n,t){this.onFulfilled="function"==typeof e?e:null,this.onRejected="function"==typeof n?n:null,this.promise=t;}(e,n,o)),o},o.prototype["finally"]=e,o.all=function(e){return new o(function(t,o){function r(e,n){try{if(n&&("object"==typeof n||"function"==typeof n)){var u=n.then;if("function"==typeof u)return void u.call(n,function(n){r(e,n);},o)}i[e]=n,0==--f&&t(i);}catch(c){o(c);}}if(!n(e))return o(new TypeError("Promise.all accepts an array"));var i=Array.prototype.slice.call(e);if(0===i.length)return t([]);for(var f=i.length,u=0;i.length>u;u++)r(u,i[u]);})},o.resolve=function(e){return e&&"object"==typeof e&&e.constructor===o?e:new o(function(n){n(e);})},o.reject=function(e){return new o(function(n,t){t(e);})},o.race=function(e){return new o(function(t,r){if(!n(e))return r(new TypeError("Promise.race accepts an array"));for(var i=0,f=e.length;f>i;i++)o.resolve(e[i]).then(t,r);})},o._immediateFn="function"==typeof setImmediate&&function(e){setImmediate(e);}||function(e){a(e,0);},o._unhandledRejectionFn=function(e){void 0!==console&&console&&console.warn("Possible Unhandled Promise Rejection:",e);};var l=function(){if("undefined"!=typeof self)return self;if("undefined"!=typeof window)return window;if("undefined"!=typeof global)return global;throw Error("unable to locate global object")}();"Promise"in l?l.Promise.prototype["finally"]||(l.Promise.prototype["finally"]=e):l.Promise=o;});
 
   var _ = {
-    
+    visibility:function (obj){
+      obj = obj || {};
+      var visibly = {
+          // document.hidden name
+          hidden:undefined,
+          // visibilityChange name
+          visibilityChange:undefined,
+
+          isSupported: function () {
+              return (typeof this.hidden !== "undefined");
+          },
+          _visible: obj.onVisible,
+          _hidden: obj.onHidden,
+          _nativeSwitch: function () {
+              ((document[this.hidden]) === true) ? this._hidden() : this._visible();
+          },
+          listen: function () {
+            try { /*if no native page visibility support found..*/
+                if (!(this.isSupported())) {
+                    if (document.addEventListener) { /*for browsers without focusin/out support eg. firefox, opera use focus/blur*/
+  /*window used instead of doc as Opera complains otherwise*/
+                        window.addEventListener('foucus', this._visible, 1);
+                        window.addEventListener('blur', this._hidden, 1);
+                    } else { /*IE <10s most reliable focus events are onfocusin/onfocusout*/
+                        document.attachEvent('onfocusin', this._visible);
+                        document.attachEvent('onfocusout', this._hidden);
+                    }
+                } else { /*switch support based on prefix*/
+                    document.addEventListener(this.visibilityChange, function () {
+                        visibly._nativeSwitch.apply(visibly, arguments);
+                    }, 1);
+                }
+            } catch (e) {}        },
+          init: function () {
+              if (typeof document.hidden !== "undefined") {
+                  this.hidden = "hidden";
+                  this.visibilityChange = "visibilitychange";
+              } else if (typeof document.mozHidden !== "undefined") {
+                  this.hidden = "mozHidden";
+                  this.visibilityChange = "mozvisibilitychange";
+              } else if (typeof document.msHidden !== "undefined") {
+                  this.hidden = "msHidden";
+                  this.visibilityChange = "msvisibilitychange";
+              } else if (typeof document.webkitHidden !== "undefined") {
+                  this.hidden = "webkitHidden";
+                  this.visibilityChange = "webkitvisibilitychange";
+              }
+              this.listen();
+          }
+      };
+
+      visibly.init();
+
+    },
     getRgba: function (value) {
       if (typeof value !== "object") {
         return value;
@@ -582,7 +635,7 @@
         }
         // 弹框插入页面中
         if(that.isRender){
-          var plan_id = that.msg.plan ? that.msg.plan.plan_id : "";
+          var plan_id = that.msg.plan.plan_id || "";
 
           document.body.appendChild(that.containerEle);
           that.msg.$sf_succeed = true;
@@ -590,7 +643,7 @@
           popup.info.popup_listener.onLoadSuccess(plan_id);
         }
       }, function(message){
-        var plan_id = that.msg.plan ? that.msg.plan.plan_id : "";
+        var plan_id = that.msg.plan.plan_id || "";
         _.extend(that.msg, message);
         that.msg.$sf_succeed = false;
         that.msg.$sf_fail_reason = ERROR_CODE[1000];
@@ -774,7 +827,7 @@
      * 关闭弹框
      */
     destory: function() {
-      var plan_id = this.msg.plan ? this.msg.plan.plan_id : "";
+      var plan_id = this.msg.plan.plan_id || "";
 
       popup.info.popup_listener.onClose(plan_id);
       document.body.removeChild(this.maskEle);
@@ -843,29 +896,31 @@
       var plan = msg.plan;
      // 弹框埋点事件公共属性
      var publicProps = {
-      // 计划 ID 服务端给
-      $sf_plan_id: "",
+      // 弹框版本号
+      $sf_popup_version: popup.lib_version,
       // 计划类型 服务端给
       $sf_plan_type: "运营计划",
       // 弹窗触达
       $sf_channel_service_name: "SENSORS_FOCUS",
       //弹窗分类
       $sf_channel_category: "POPUP",
-      // 受众 ID 服务端给
-      $sf_audience_id: "",
-      // 对照组 服务端给 是对照组-1，不是对照组0
-      $sf_plan_strategy_id: "",
       // 区分 PC WEB 和 H5
       $sf_platform_tag: popup.info.platform,
       // 消息ID
       $sf_msg_id: msg.uuid
      };
    
-     // 非测试发送，plan为对象，测试发送plan为null
-      if(_.isObject(plan)){
+      if(_.isEmptyObject(plan)){
+        return publicProps;
+      } else {
+        // 计划 ID 服务端给
         publicProps.$sf_plan_id = plan.plan_id;
-        publicProps.$sf_audience_id =plan.audience_id;
+        // 对照组 服务端给 是对照组-1，不是对照组0
         publicProps.$sf_plan_strategy_id = plan.is_control_group ? -1 : 0;
+        // 受众 ID 服务端给，受众为全部用户时，服务器端不返回受众id，受众 ID SDK 不上报
+        if(plan.audience_id){
+          publicProps.$sf_audience_id = plan.audience_id;
+        }
       }
      
       return  publicProps
@@ -946,7 +1001,7 @@
         var action_item = action[0];
         var info = JSON.parse(element_info) || {};
       } catch (e) {
-        console.log('elementClickCallback error', e);
+        popup.log('elementClickCallback error', e);
       }
 
       // 调用元素点击的回调函数
@@ -1027,7 +1082,6 @@
                   var uuid = _.getUuid();
                   // 渲染弹框
                   var ele = new ElementRender(template);
-                  ele.msg.plan = null;
                   ele.msg.sf_msg_id = uuid;
                   // 处理弹框的点击操作和埋点
                   ele.render(function (e) {
@@ -1050,8 +1104,24 @@
   };
 
 
-  popup.setWebSDKReady = function(){
-
+  popup.listenPageStateChange = function(){
+    var isShow = true;
+    _.visibility({
+      onVisible:function(){
+        popup.log('页面触发visible-',new Date().getMinutes(),'分',new Date().getSeconds());
+        if(isShow === false){
+          popup.updateDataAndSetListen.is_listen = true;
+          isShow = true;
+        }
+      },
+      onHidden:function(){
+        popup.log('页面触发hidden-',new Date().getMinutes(),'分',new Date().getSeconds());      
+        if(isShow === true){
+          popup.updateDataAndSetListen.is_listen = false;
+          isShow = false;
+        }
+      }
+    });
   };
 
 
@@ -1090,7 +1160,7 @@
       return false;    
     }else {
       if(popup.info.api_base_url.slice(0,5) === 'http:' && location.protocol === 'https'){
-        popup.errorMsg = '您的当前页面是https的地址，api_base_url 也必须是https！';
+        popup.log('您的当前页面是https的地址，api_base_url 也必须是https！');
       }
       popup.info.api_base_url = popup.info.api_base_url.slice(-1) === '/' ? popup.info.api_base_url.slice(0,-1):popup.info.api_base_url; 
     }
@@ -1135,10 +1205,11 @@
     if(!this.setPara(para)){
       return false;
     }
-
     if(popup.testSend.hasParam()){
       popup.testSend.start();    
     }else {
+
+      popup.listenPageStateChange();
       // 设置需要监听的事件
       popup.updateDataAndSetListen.initial();    
     }
@@ -1591,7 +1662,6 @@
       _.each(plan_list,function(plan){
         new popup.RuleCheck(plan, event_properties);
       });
-      salog('弹窗流程', plan_list);
       // 然后针对match_state，做弹窗优先级的判断
       _.each(plan_list,function(plan){
         // 如果是匹配了的做优先级检查。不匹配的就不管了
@@ -1604,6 +1674,8 @@
             salog('弹窗流程-非优先弹窗-不渲染');          
             new popup.PopupCheck(plan,false);
           }
+        }else {
+          salog('检查-弹窗流程-失败-当前计划', plan.plan.plan_id, plan);        
         }
       });
 
@@ -1651,7 +1723,7 @@
       var temp = JSON.parse(popupTemplate.content);
       var ele = new ElementRender(temp);
     }catch(e){
-      console.log('renderPopup Error', e);
+      popup.log('renderPopup Error', e);
     }
     
     // 挂载plan和uuid
@@ -1729,7 +1801,6 @@
 
   // 规则检查的流程, 执行完成后需要设置 matchlist.match_state 的状态
   popup.RuleCheck = function(plan_match, event_properties){
-    salog('检查-准备');  
     this.plan_match = plan_match;
 
     this.plan = plan_match.plan;
@@ -1739,16 +1810,32 @@
 
     this.current_time = (new Date()).getTime();
 
+    _.each(this.rule_arr, function(rule,index){
+      salog('检查-准备-计划id-',plan_match.plan.plan_id,'-规则-',index+1,'-'+rule.event_name+'-'+rule.params[0]+'次');
+    });
+
     this.checkPlanIsExpire();
+
+
+
   };
 
 
   popup.RuleCheck.prototype.checkPlanIsExpire = function(){
     if(!this.plan.expire_at || (_.isNumber(this.plan.expire_at) && this.current_time < this.plan.expire_at)){
       salog('检查-PlanExpire-计划没有过期-满足');
-      this.checkPlanSuspend();
+      this.checkPlanIsAudience();
     }else {
       salog('检查-PlanExpire-计划已经过期-不满足');    
+    }
+  };
+
+  popup.RuleCheck.prototype.checkPlanIsAudience = function(){
+    if(this.plan.is_audience === true){
+      salog('检查-是否受众-满足');
+      this.checkPlanSuspend();
+    }else {
+      salog('检查-是否受众-不满足');
     }
   };
 
@@ -1899,20 +1986,42 @@
        * 字符串为空就是“”，数组为空就是[];
        */
       isEmpty: function(property){
+        var flag = false;
         if(!_.isString(property) && !_.isArray(property)){
           return false;
         }
-        return property.length === 0;
+        if(_.isString(property)){
+          return property.length === 0;
+        } else {
+          // ["",""]数组中一项为空，则isEmpty为真。
+          _.each(property,function(item){
+             if(item === ""){
+               flag = true;
+             }
+          });
+          return flag;
+        }
       },
       /**
        * 不为空
        * @param {list,string} property 
        */
       isNotEmpty: function(property){
+        var flag = true;
         if(!_.isString(property) && !_.isArray(property)){
           return false;
         }
-        return property.length > 0;
+        if(_.isString(property)){
+          return property.length > 0;
+        } else {
+          // ["",""]数组中一项为空，则isNotEmpty为假。
+          _.each(property,function(item){
+             if(item === ""){
+               flag = false;
+             }
+          });
+          return flag;
+        }
       },
       
       /**
@@ -2011,7 +2120,7 @@
           var data = new Date(property);
           return data >= startTime && data <= endTime;
         } catch (e){
-          console.log('absolute_between Error', e);
+          popup.log('absolute_between Error', e);
         }
       },
       absoluteBetween: function (property, params) {
@@ -2021,7 +2130,7 @@
           var data = new Date(property);
           return data >= startTime && data <= endTime;
         } catch (e){
-          console.log('absolute_between Error', e);
+          popup.log('absolute_between Error', e);
         }
       }
       
@@ -2254,6 +2363,9 @@
 
   //每隔10分钟获取一次数据,每次打开页面，记录当前更新时间，并判断设置定时的定时器
   popup.updateDataAndSetListen = {
+    // 是否需要监听事件，针对多tab页问题，隐藏时候不监听事件
+    is_listen: true,
+    // 请求间隔时间
     interval_time: 10 * 60 * 1000,
     /**
      * 筛选出需要做转化的plans
@@ -2270,7 +2382,7 @@
       });
 
       popup.convertPlans = data;
-      console.log('需要做转化的plans',popup.convertPlans);
+      popup.log('需要做转化的plans',popup.convertPlans);
       popup.asyncConvert();
     },
     /**
@@ -2316,9 +2428,16 @@
         //循环本地的plan，判断远程的plan_id在本地中是否有相同的plan
         _.each(localData.popup_plans, function (local_item) {
           if (local_item.plan_id === item.plan_id) {
-            localItem = local_item;
+            localItem = local_item; 
+            // 将本地的is_audience和audience_id修改为远程的
+            localItem.is_audience = item.is_audience;
+            if(item.audience_id){
+              localItem.audience_id = item.audience_id;
+            }else {
+              delete localItem.audience_id;
+            }
           }
-        });
+        });     
 
         // server有plan，local没有当前plan, 用server的plan
         if (!localItem) {
@@ -2330,18 +2449,9 @@
           return false;
         }
     
-        // is_audience(是否受众)为false，status不是ACTIVE(运行状态)或SUSPEND(暂停状态)， 删除local和server中的plan
-        if (!item.is_audience || (item.status !== 'ACTIVE' && item.status !== 'SUSPEND' ) ) {
-          plans[index] = null;
-        } else {
-          // time一致，is_audience和status都ok，直接复用local，不做修改
-          plans[index] = localItem;
-        }
-      });
+        // time一致，直接复用local，不做修改
+        plans[index] = localItem;
 
-      // 筛选出server中非null的数据，最后将server的popup_plans替换local的popup_plans
-      serverData.popup_plans = _.filter(plans, function(item){
-        return !!item
       });
 
       // 修改local数据
@@ -2413,6 +2523,7 @@
           }
           popup.eventTriggerProcess(rule,data);
       });
+      
       popup.sa.events.isReady();
     },
     /***
@@ -2474,7 +2585,7 @@
     /**
      * 每隔1s对比LocalData，不相同，则更新LocalData
      */
-    updateLocalData() {
+    updateLocalData: function() {
      var local_data = JSON.stringify(popup.localData);
       setInterval(function(){
         var localData = JSON.stringify(popup.localData);
@@ -2491,7 +2602,7 @@
       this.updateLocalData();
       var last_time = popup.localData.local_update_time;
       var current_time = (new Date()).getTime();
-      if (typeof last_time !== 'number') {
+      if (!_.isNumber(last_time)) {
         this.setFirstListen();
         return false;
       }

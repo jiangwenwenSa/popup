@@ -2646,6 +2646,8 @@ sd.debug = {
           if(_.isObject(window.SensorsDataWebJSSDKPlugin) && window.SensorsDataWebJSSDKPlugin[k]){
             v(window.SensorsDataWebJSSDKPlugin[k]);
 //            delete sd.pluginTempFunction[k];
+          }else {
+            sd.log(k + '没有获取到,请查阅文档，调整'+ k +'的引入顺序！')
           }
         }
       });
