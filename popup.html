@@ -1,0 +1,232 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<!-- <style>
+  *{ font-size:30px; margin:25px 25px}
+</style> -->
+<head>
+  <meta http-equiv="Content-Type" content="charset=UTF-8">
+
+  <title>Demo</title>
+  <script type="text/javascript">
+  var liuLiu = "变量一";
+  //alert("#######" + liuLiu);
+  </script>
+ 
+<script>
+   (function(para) {
+      if(typeof(window['sensorsDataAnalytic201505']) !== 'undefined') {
+        return false;
+      }
+      window['sensorsDataAnalytic201505'] = para.name;
+      window[para.name] = {
+        para: para
+      };
+  })({
+      name: 'sb',
+      server_url:'http://10.42.40.99:8106/sa?project=SDKTest',
+      //如果神策代码中 `sensorsdata.min.js` 是 1.13.1 以前的版本，必须须配置 heatmap_url，高于此版本不需要配置。heatmap_url 神策分析中点击分析及触达分析功能代码，代码生成工具会自动生成。
+      heatmap_url: './heatmap.full.js',
+      heatmap: {
+         clickmap:'default',
+         scroll_notice_map:'default'
+      }
+    });
+//   (function(para) {
+//     var p = para.sdk_url, n = para.name, w = window, d = document, s = 'script',x = null,y = null;
+//     if(typeof(w['sensorsDataAnalytic201505']) !== 'undefined') {
+//         return false;
+//     }
+//     w['sensorsDataAnalytic201505'] = n;
+//     w[n] = w[n] || function(a) {return function() {(w[n]._q = w[n]._q || []).push([a, arguments]);}};
+//     var ifs = ['track','quick','register','registerPage','registerOnce','trackSignup', 'trackAbtest', 'setProfile','setOnceProfile','appendProfile', 'incrementProfile', 'deleteProfile', 'unsetProfile', 'identify','login','logout','trackLink','clearAllRegister','getAppStatus'];
+//     for (var i = 0; i < ifs.length; i++) {
+//       w[n][ifs[i]] = w[n].call(null, ifs[i]);
+//     }
+//     if (!w[n]._t) {
+//       x = d.createElement(s), y = d.getElementsByTagName(s)[0];
+//       x.async = 1;
+//       x.src = p;
+//       x.setAttribute('charset','UTF-8');
+//       w[n].para = para;
+//       y.parentNode.insertBefore(x, y);
+//     }
+//   })({
+//   sdk_url: './sensorsdata.full.js',
+//   heatmap_url: './heatmap.full.js',
+//   name: 'sa',
+//   server_url: 'http://10.42.40.99:8106/sa?project=SDKTest',
+//   heatmap:{
+//     clickmap:'default',
+//     scroll_notice_map:'default'
+//   },
+//   source_channel:['lixiang','kkkkk','jjjj']
+// });
+</script>
+<script src="./sensorsdata.full.js"></script>
+<script>
+  sa.quick('setPlugin',{
+          popup: function(self){
+            self.init({
+               api_base_url:'http://10.42.189.228:8141',
+               popup_listener: {
+                 onClick:function(plan_id,action){
+                   console.log('onClick plan_id',plan_id)
+                   console.log('onClick action',action)
+                   alert(JSON.stringify(action));
+                 },
+                 onLoadSuccess:function(plan_id){
+                  console.log('onLoadSuccess',plan_id)
+                 },
+                 onLoadFailed: function(plan_id,code,message){
+                  console.log('onLoadFailed plan_id', plan_id);
+                  console.log('onLoadFailed code', code);
+                  console.log('onLoadFailed message', message);
+                 },
+                 onClose:function(plan_id){
+                  console.log('onClose',plan_id)
+                 }
+               }
+            })
+          }
+        })
+</script>
+
+</head>
+
+<body>
+  <script>
+    sa.quick('autoTrack');
+    // var iszero2 = "aaaaa";
+    //  sa.registerPage({
+    //    test_istest_test:true
+    //   });
+    // sa.quick('autoTrack',{$lib_detail:'##clickNavFunc##nav.js##28'});
+  </script>
+<input type="text" placeholder="输入搜索关键词" id="keyWord"/>
+<button type="button" id="sosuo" data="test" data-sensors-click>搜索</button>
+
+<div class="dbtn_accept" id="div" name="" data="test" data-sensors-click>我是DIV2</div> 
+<script>
+document.getElementById("div").onclick = function(){
+  console.log("t123456");
+  sa.track('test2_1089',{
+    jww_user_id:"数学"
+	},);
+}
+</script>
+
+<script>
+
+</script>
+<a href="XXXXX" data2="test2" sensors-disable="true" data-sensors-click>data-sensors-click</a>
+
+<a href="index2.html?urlfrom=index1&jjjj=jww&utm_source=www" data2="test2" sensors-disable="true"><div></div><div>你好</div>
+  <a href="http://www.jww.com:8080/index2.html" data2="test2" id="test3"><div></div><div>你好2</div>
+</a>
+
+<a href="javascript:void(0);">
+<img src="./12.jpg" width="402" height="403" onclick="selectImage()" data-sensors-click/>tupian3
+</a>
+<script>
+  function selectImage(){
+    console.log("!@#%^1111111111111");
+          sa.quick('trackAllHeatMap',window.event.srcElement,{
+				customProp1: 'test1', //如果需要添加自定义属性需要将 SDK 升级到 1.13.7 及以上版本。
+				customProp2: 'test2'
+			}, function() {
+				console.log('callback');
+			}); 
+
+  }
+  </script>
+
+<div>
+  <div>
+   <div>
+                        <a href="htffundxjb://action?type=pension&amp;subType=home">
+                            <div>                           
+                            </div>
+                            <div style="margin-top:0.85rem;font-size: 0.65rem;color:#000000">养老专区</div></a>
+                    </div>
+                    </div>
+                    </div>
+
+<button id="tijiao">提交</button>
+<script>
+// document.getElementById("test2").onclick = function(){
+//         sa.track('ViewTesthello', {
+//                 name: 'Abc'},function(){
+//         //console.log("&&&&&&&&&&&&&&");
+//         }
+// );
+//}
+</script>
+<script>
+document.getElementById("tijiao").onclick = function(){
+        sa.track('$viewHello2', {
+                name: "2019_11_06_08",
+                $test:"abcde",
+                test1: NaN,
+                test2: undefined,
+                test3: null,
+                isDate: function() {
+    return 'A date string' // 返回字符串
+  },
+                isTest: function() {
+
+  }
+            });
+}
+document.getElementById("test3").onclick = function(){
+        sa.trackLink(this,"seeTrackLink",{
+                link: '你好2'});
+}
+</script>
+<script>
+// $(function(){
+//         sa.track('ViewJww', {
+//                 name: '123456'
+//             });
+// })
+
+</script>
+
+<input type="text" value="填写内容" id="tianxie" />填写
+
+<select name="省份" id="shengfen"> 
+<option value="0">北京</option> 
+<option value="1">上海</option> 
+<option value="2">合肥</option> 
+</select> 
+
+<script>
+document.getElementById("shengfen").onchange = function(){
+  var tianxie = document.getElementById("tianxie");
+  console.log("!!!!!!!!!!!!!!!!!!!!!!!"+this);
+  console.log("!@@@@@@@@@@@@@@@@@@");
+        sa.quick('trackHeatMap',this); 
+}
+
+</script>
+<button data2="test2">测试</button>
+<div data2="test22" id="wenzi2" onclick="selectStock()">测试</div>
+<div data2="test22" id="wenzi22" data-sensors-click>测试</div>
+<script>
+function selectStock(){
+        sa.quick('trackAllHeatMap',window.event.srcElement,); 
+}
+//window.onunload = function() { 
+   //console.log("123aaa456");
+   //};
+//    sa.quick('isReady', function () {
+//     sa.events.on('send', function (data) {
+//     })
+//     sa.events.isReady();
+// })
+</script>
+
+<p  style="height:1000px"></p>
+<script src="./popup.js"></script>
+</body>
+
+</html> 
