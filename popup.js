@@ -605,8 +605,8 @@
               position: "fixed",
               width: "100%",
               height: "100%",
-              top: 0,
-              left: 0,
+              top: "0px",
+              left: "0px",
               backgroundColor: _.getRgba(that.properties.maskColor),
               "z-index": 9999
             })
@@ -908,7 +908,7 @@
       // 区分 PC WEB 和 H5
       $sf_platform_tag: popup.info.platform,
       // 消息ID
-      $sf_msg_id: msg.uuid
+      $sf_msg_id: msg.$sf_msg_id
      };
    
       if(_.isEmptyObject(plan)){
@@ -1083,7 +1083,7 @@
                   var uuid = _.getUuid();
                   // 渲染弹框
                   var ele = new ElementRender(template);
-                  ele.msg.sf_msg_id = uuid;
+                  ele.msg.$sf_msg_id = uuid;
                   // 处理弹框的点击操作和埋点
                   ele.render(function (e) {
                       popup.track.elementClickCallback(e, ele);
@@ -1111,14 +1111,14 @@
       onVisible:function(){
         popup.log('页面触发visible-',new Date().getMinutes(),'分',new Date().getSeconds());
         if(isShow === false){
-          popup.updateDataAndSetListen.is_listen = true;
+          popup.updateDataAndSetListen.startState();
           isShow = true;
         }
       },
       onHidden:function(){
         popup.log('页面触发hidden-',new Date().getMinutes(),'分',new Date().getSeconds());      
         if(isShow === true){
-          popup.updateDataAndSetListen.is_listen = false;
+          popup.updateDataAndSetListen.stopAllState();
           isShow = false;
         }
       }
@@ -1242,6 +1242,8 @@
        _.each(data, function(result){
           if(result.popup_display_uuid === uuid && result.convert_time){
               delete popup.convertPlans[index].is_in_convert_window;
+              // 删除已经转化完成的plan，此处的删除不会删除popup.localData.popup_plans中的plan
+              popup.convertPlans.splice(index, 1);
           }
        });
     });
@@ -1271,9 +1273,12 @@
     }
     
     function convertStatusPolling() {
+      if(_.isEmptyObject(popup.localData) || !_.isArray(popup.convertPlans) || popup.convertPlans.length === 0){
+        return false;
+      }
       var arr = popup.convertPlans;
       // 数组中最小的step
-      var min_step = arr[0].is_in_convert_window.step || 5000;
+      var min_step = (arr[0].is_in_convert_window && arr[0].is_in_convert_window.step) || 5000;
       // 需要转化的uuid列表
       var uuid_list = [];
       
@@ -1666,6 +1671,11 @@
 
       // 先遍历所有规则，得到plan_state(是否触发)
       _.each(plan_list,function(plan){
+        // 因为是引用数据，需要重置match_state
+        if(_.isObject(plan) && typeof plan.match_state !== 'undefined'){
+          delete plan.match_state;
+        }
+
         new popup.RuleCheck(plan, event_properties);
       });
       // 然后针对match_state，做弹窗优先级的判断
@@ -1734,7 +1744,7 @@
     
     // 挂载plan和uuid
     ele.msg.plan = this.plan;
-    ele.msg.sf_msg_id = uuid;
+    ele.msg.$sf_msg_id = uuid;
 
     // is_control_group:是否对照组，对照组不渲染弹框，只发弹窗埋点。
     ele.isRender = !this.plan.is_control_group;
@@ -1992,41 +2002,44 @@
        * 字符串为空就是“”，数组为空就是[];
        */
       isEmpty: function(property){
-        var flag = false;
         if(!_.isString(property) && !_.isArray(property)){
           return false;
         }
+        
         if(_.isString(property)){
-          return property.length === 0;
+          return property === "";
         } else {
-          // ["",""]数组中一项为空，则isEmpty为真。
-          _.each(property,function(item){
-             if(item === ""){
-               flag = true;
-             }
-          });
-          return flag;
+          // 去除首尾空格
+          for(var i=0; i<property.length; i++){
+            var $item = property[i].replace(/^\s+|\s+$/g,'');
+            if($item !== ''){
+              return false;
+            }
+          }
+          return true;
         }
       },
       /**
        * 不为空
        * @param {list,string} property 
+       * "   " === true
        */
       isNotEmpty: function(property){
-        var flag = true;
         if(!_.isString(property) && !_.isArray(property)){
           return false;
         }
+        
         if(_.isString(property)){
-          return property.length > 0;
+          return property !== "";
         } else {
-          // ["",""]数组中一项为空，则isNotEmpty为假。
-          _.each(property,function(item){
-             if(item === ""){
-               flag = false;
-             }
-          });
-          return flag;
+          // 去除首尾空格
+          for(var i=0; i<property.length; i++){
+            var $item = property[i].replace(/^\s+|\s+$/g,'');
+            if($item === ''){
+              return false;
+            }
+          }
+          return true;
         }
       },
       
@@ -2355,11 +2368,13 @@
     },
     init: function () {
       popup.localData = this.getJSONData() || {};
+      popup.log('修改-内存-localData-',popup.localData);
     },
     getJSONData: function () {
       return _.localStorage.parse('sensorsdata202002-popupdata');
     },
     saveJSONData: function () {
+      // 数据有修改
       _.localStorage.set('sensorsdata202002-popupdata', JSON.stringify(popup.localData));
     }
   };
@@ -2369,8 +2384,6 @@
 
   //每隔10分钟获取一次数据,每次打开页面，记录当前更新时间，并判断设置定时的定时器
   popup.updateDataAndSetListen = {
-    // 是否需要监听事件，针对多tab页问题，隐藏时候不监听事件
-    is_listen: true,
     // 请求间隔时间
     interval_time: 10 * 60 * 1000,
     // 保存的interval
@@ -2465,8 +2478,9 @@
 
       });
 
-      // 修改local数据
+
       _.extend(popup.localData, serverData);
+      popup.log('比对数据-得到需要的-localData', popup.localData); 
     },
     /***
      * 根据localData获取eventRule,eventRule数据格式如下：
@@ -2527,15 +2541,31 @@
      */
     registerListen: function () {
       var eventRule = popup.eventRule;
+      var that = this;
       popup.sa.events.on('send', function (data) {
+          if(data.type === 'track_signup'){
+            that.signupEvent();
+            return;
+          }
+
           var rule = eventRule[data.event];
           if(!rule){
             return false;
           }
+          
           popup.eventTriggerProcess(rule,data);
       });
-      
+      // 监听logout
+      popup.sa.events.on('logout',function(distinct_id){
+        that.signupEvent();
+      });
       popup.sa.events.isReady();
+    },
+    /**
+     * 清除本地用户缓存的计划规则数据，同时立即使用新的 ID 拉取计划规则数据。
+     */
+    signupEvent: function(){
+      this.changeId();
     },
     /***
      * 设置localData和eventRule
@@ -2561,6 +2591,7 @@
           credentials: false,
           contentType: 'application/json',
           success: function (data) {
+            popup.log('修改-serverData-',data);
             popup.serverData = data;
             // 修改localData调用save去修改
             popup.localData.local_update_time = (new Date()).getTime();
@@ -2571,6 +2602,7 @@
             that.setIntervalTime(that.interval_time);
           },
           error: function () {
+            popup.log('修改-serverData-',{});          
             popup.serverData = {};
             res();
             that.setIntervalTime(that.interval_time);
@@ -2632,19 +2664,31 @@
       this.updateLocalData();
 
     },
-    // 
+    changeId: function(){
+      this.stopAllState();
+      this.startState({getLocalData:false});
+    },
+    // 清空所有状态
     stopAllState: function(){
       // 清空监听 只要清空rule
       popup.eventRule = {};
       // 清空定时器     // 清楚定时保存
       this.data_interval && clearTimeout(this.data_interval);
       this.save_interval && clearInterval(this.save_interval);
+      // 清空异步的转化
+      popup.convertPlans = [];
       // locadata 设置成空
+      popup.log('修改-内存-localData-',{});
       popup.localData = {};
     },
-    startState: function(){
+    startState: function(obj){
+      obj = obj || {getLocalData:true};
       // 重新获取数据，并开始监听，保存数据
       var that = this;
+      if(obj.getLocalData){
+        popup.store.init();   
+      }
+
       this.getDataFromServer().then(function(){
         that.updateLocalData();
       });

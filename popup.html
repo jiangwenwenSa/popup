@@ -54,7 +54,7 @@
 //   sdk_url: './sensorsdata.full.js',
 //   heatmap_url: './heatmap.full.js',
 //   name: 'sa',
-//   server_url: 'http://10.42.40.99:8106/sa?project=SDKTest',
+//   server_url: 'https://10.42.40.99:8106/sa?project=SDKTest',
 //   heatmap:{
 //     clickmap:'default',
 //     scroll_notice_map:'default'
@@ -67,7 +67,7 @@
   sa.quick('setPlugin',{
           popup: function(self){
             self.init({
-               api_base_url:'https://10.42.189.228:8141',
+               api_base_url:'http://10.42.189.228:8141',
                popup_listener: {
                  onClick:function(plan_id,action){
                    console.log('onClick plan_id',plan_id)
