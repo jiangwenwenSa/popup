@@ -2981,9 +2981,12 @@ sd.debug = {
       store.set('first_id','');
       if(isChangeId === true){
         store.set('distinct_id',_.UUID());
+        sd.events.tempAdd('logout',_.UUID());
       }else{
         store.set('distinct_id',firstId);
+        sd.events.tempAdd('logout',firstId);
       }
+      
     }else{
       sd.log('没有first_id，logout失败');
     }
