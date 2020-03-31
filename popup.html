@@ -11,7 +11,7 @@
   var liuLiu = "变量一";
   //alert("#######" + liuLiu);
   </script>
- 
+ <script src="./popup.js"></script>
 <script>
    (function(para) {
       if(typeof(window['sensorsDataAnalytic201505']) !== 'undefined') {
@@ -31,43 +31,13 @@
          scroll_notice_map:'default'
       }
     });
-//   (function(para) {
-//     var p = para.sdk_url, n = para.name, w = window, d = document, s = 'script',x = null,y = null;
-//     if(typeof(w['sensorsDataAnalytic201505']) !== 'undefined') {
-//         return false;
-//     }
-//     w['sensorsDataAnalytic201505'] = n;
-//     w[n] = w[n] || function(a) {return function() {(w[n]._q = w[n]._q || []).push([a, arguments]);}};
-//     var ifs = ['track','quick','register','registerPage','registerOnce','trackSignup', 'trackAbtest', 'setProfile','setOnceProfile','appendProfile', 'incrementProfile', 'deleteProfile', 'unsetProfile', 'identify','login','logout','trackLink','clearAllRegister','getAppStatus'];
-//     for (var i = 0; i < ifs.length; i++) {
-//       w[n][ifs[i]] = w[n].call(null, ifs[i]);
-//     }
-//     if (!w[n]._t) {
-//       x = d.createElement(s), y = d.getElementsByTagName(s)[0];
-//       x.async = 1;
-//       x.src = p;
-//       x.setAttribute('charset','UTF-8');
-//       w[n].para = para;
-//       y.parentNode.insertBefore(x, y);
-//     }
-//   })({
-//   sdk_url: './sensorsdata.full.js',
-//   heatmap_url: './heatmap.full.js',
-//   name: 'sa',
-//   server_url: 'https://10.42.40.99:8106/sa?project=SDKTest',
-//   heatmap:{
-//     clickmap:'default',
-//     scroll_notice_map:'default'
-//   },
-//   source_channel:['lixiang','kkkkk','jjjj']
-// });
 </script>
 <script src="./sensorsdata.full.js"></script>
 <script>
   sa.quick('setPlugin',{
           popup: function(self){
             self.init({
-               api_base_url:'http://10.42.189.228:8141',
+               api_base_url:'https://sfo16rd228s.debugbox.sensorsdata.cn/api/v2/sfo/user_popup_configs/123123?project=SDKTest&platform=IOS',
                popup_listener: {
                  onClick:function(plan_id,action){
                    console.log('onClick plan_id',plan_id)
@@ -226,7 +196,7 @@ function selectStock(){
 </script>
 
 <p  style="height:1000px"></p>
-<script src="./popup.js"></script>
+
 </body>
 
 </html> 
