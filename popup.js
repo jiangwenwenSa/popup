@@ -1,6 +1,6 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() : factory();
-}(this, (function () { 'use strict';
+}(this, function () { 'use strict';
 
   var popup = {
     sa:{},
@@ -39,7 +39,7 @@
   /**
    * @link https://github.com/taylorhakes/promise-polyfill/blob/master/dist/polyfill.min.js
    */
-  !function(e,n){"object"==typeof exports&&"undefined"!=typeof module?n():"function"==typeof define&&define.amd?define(n):n();}(0,function(){function e(e){var n=this.constructor;return this.then(function(t){return n.resolve(e()).then(function(){return t})},function(t){return n.resolve(e()).then(function(){return n.reject(t)})})}function n(e){return !(!e||"undefined"==typeof e.length)}function t(){}function o(e){if(!(this instanceof o))throw new TypeError("Promises must be constructed via new");if("function"!=typeof e)throw new TypeError("not a function");this._state=0,this._handled=!1,this._value=undefined,this._deferreds=[],c(e,this);}function r(e,n){for(;3===e._state;)e=e._value;0!==e._state?(e._handled=!0,o._immediateFn(function(){var t=1===e._state?n.onFulfilled:n.onRejected;if(null!==t){var o;try{o=t(e._value);}catch(r){return void f(n.promise,r)}i(n.promise,o);}else (1===e._state?i:f)(n.promise,e._value);})):e._deferreds.push(n);}function i(e,n){try{if(n===e)throw new TypeError("A promise cannot be resolved with itself.");if(n&&("object"==typeof n||"function"==typeof n)){var t=n.then;if(n instanceof o)return e._state=3,e._value=n,void u(e);if("function"==typeof t)return void c(function(e,n){return function(){e.apply(n,arguments);}}(t,n),e)}e._state=1,e._value=n,u(e);}catch(r){f(e,r);}}function f(e,n){e._state=2,e._value=n,u(e);}function u(e){2===e._state&&0===e._deferreds.length&&o._immediateFn(function(){e._handled||o._unhandledRejectionFn(e._value);});for(var n=0,t=e._deferreds.length;t>n;n++)r(e,e._deferreds[n]);e._deferreds=null;}function c(e,n){var t=!1;try{e(function(e){t||(t=!0,i(n,e));},function(e){t||(t=!0,f(n,e));});}catch(o){if(t)return;t=!0,f(n,o);}}var a=setTimeout;o.prototype["catch"]=function(e){return this.then(null,e)},o.prototype.then=function(e,n){var o=new this.constructor(t);return r(this,new function(e,n,t){this.onFulfilled="function"==typeof e?e:null,this.onRejected="function"==typeof n?n:null,this.promise=t;}(e,n,o)),o},o.prototype["finally"]=e,o.all=function(e){return new o(function(t,o){function r(e,n){try{if(n&&("object"==typeof n||"function"==typeof n)){var u=n.then;if("function"==typeof u)return void u.call(n,function(n){r(e,n);},o)}i[e]=n,0==--f&&t(i);}catch(c){o(c);}}if(!n(e))return o(new TypeError("Promise.all accepts an array"));var i=Array.prototype.slice.call(e);if(0===i.length)return t([]);for(var f=i.length,u=0;i.length>u;u++)r(u,i[u]);})},o.resolve=function(e){return e&&"object"==typeof e&&e.constructor===o?e:new o(function(n){n(e);})},o.reject=function(e){return new o(function(n,t){t(e);})},o.race=function(e){return new o(function(t,r){if(!n(e))return r(new TypeError("Promise.race accepts an array"));for(var i=0,f=e.length;f>i;i++)o.resolve(e[i]).then(t,r);})},o._immediateFn="function"==typeof setImmediate&&function(e){setImmediate(e);}||function(e){a(e,0);},o._unhandledRejectionFn=function(e){void 0!==console&&console&&console.warn("Possible Unhandled Promise Rejection:",e);};var l=function(){if("undefined"!=typeof self)return self;if("undefined"!=typeof window)return window;if("undefined"!=typeof global)return global;throw Error("unable to locate global object")}();"Promise"in l?l.Promise.prototype["finally"]||(l.Promise.prototype["finally"]=e):l.Promise=o;});
+  !function(e,n){"object"==typeof exports&&"undefined"!=typeof module?n():"function"==typeof define&&define.amd?define(n):n();}(0,function(){function e(e){var n=this.constructor;return this.then(function(t){return n.resolve(e()).then(function(){return t})},function(t){return n.resolve(e()).then(function(){return n.reject(t)})})}function n(e){return !(!e||"undefined"==typeof e.length)}function t(){}function o(e){if(!(this instanceof o))throw new TypeError("Promises must be constructed via new");if("function"!=typeof e)throw new TypeError("not a function");this._state=0,this._handled=!1,this._value=undefined,this._deferreds=[],c(e,this);}function r(e,n){for(;3===e._state;)e=e._value;0!==e._state?(e._handled=!0,o._immediateFn(function(){var t=1===e._state?n.onFulfilled:n.onRejected;if(null!==t){var o;try{o=t(e._value);}catch(r){return void f(n.promise,r)}i(n.promise,o);}else(1===e._state?i:f)(n.promise,e._value);})):e._deferreds.push(n);}function i(e,n){try{if(n===e)throw new TypeError("A promise cannot be resolved with itself.");if(n&&("object"==typeof n||"function"==typeof n)){var t=n.then;if(n instanceof o)return e._state=3,e._value=n,void u(e);if("function"==typeof t)return void c(function(e,n){return function(){e.apply(n,arguments);}}(t,n),e)}e._state=1,e._value=n,u(e);}catch(r){f(e,r);}}function f(e,n){e._state=2,e._value=n,u(e);}function u(e){2===e._state&&0===e._deferreds.length&&o._immediateFn(function(){e._handled||o._unhandledRejectionFn(e._value);});for(var n=0,t=e._deferreds.length;t>n;n++)r(e,e._deferreds[n]);e._deferreds=null;}function c(e,n){var t=!1;try{e(function(e){t||(t=!0,i(n,e));},function(e){t||(t=!0,f(n,e));});}catch(o){if(t)return;t=!0,f(n,o);}}var a=setTimeout;o.prototype["catch"]=function(e){return this.then(null,e)},o.prototype.then=function(e,n){var o=new this.constructor(t);return r(this,new function(e,n,t){this.onFulfilled="function"==typeof e?e:null,this.onRejected="function"==typeof n?n:null,this.promise=t;}(e,n,o)),o},o.prototype["finally"]=e,o.all=function(e){return new o(function(t,o){function r(e,n){try{if(n&&("object"==typeof n||"function"==typeof n)){var u=n.then;if("function"==typeof u)return void u.call(n,function(n){r(e,n);},o)}i[e]=n,0==--f&&t(i);}catch(c){o(c);}}if(!n(e))return o(new TypeError("Promise.all accepts an array"));var i=Array.prototype.slice.call(e);if(0===i.length)return t([]);for(var f=i.length,u=0;i.length>u;u++)r(u,i[u]);})},o.resolve=function(e){return e&&"object"==typeof e&&e.constructor===o?e:new o(function(n){n(e);})},o.reject=function(e){return new o(function(n,t){t(e);})},o.race=function(e){return new o(function(t,r){if(!n(e))return r(new TypeError("Promise.race accepts an array"));for(var i=0,f=e.length;f>i;i++)o.resolve(e[i]).then(t,r);})},o._immediateFn="function"==typeof setImmediate&&function(e){setImmediate(e);}||function(e){a(e,0);},o._unhandledRejectionFn=function(e){void 0!==console&&console&&console.warn("Possible Unhandled Promise Rejection:",e);};var l=function(){if("undefined"!=typeof self)return self;if("undefined"!=typeof window)return window;if("undefined"!=typeof global)return global;throw Error("unable to locate global object")}();"Promise"in l?l.Promise.prototype["finally"]||(l.Promise.prototype["finally"]=e):l.Promise=o;});
 
   var _ = {
     visibility:function (obj){
@@ -914,13 +914,13 @@
       if(_.isEmptyObject(plan)){
         return publicProps;
       } else {
-        // 计划 ID 服务端给
-        publicProps.$sf_plan_id = plan.plan_id;
+        // 计划 ID 服务端给的是number，转化成字符串类型
+        publicProps.$sf_plan_id = plan.plan_id + "";
         // 对照组 服务端给 是对照组-1，不是对照组0
-        publicProps.$sf_plan_strategy_id = plan.is_control_group ? -1 : 0;
+        publicProps.$sf_plan_strategy_id = plan.is_control_group ? "-1" : "0";
         // 受众 ID 服务端给，受众为全部用户时，服务器端不返回受众id，受众 ID SDK 不上报
         if(plan.audience_id){
-          publicProps.$sf_audience_id = plan.audience_id;
+          publicProps.$sf_audience_id = plan.audience_id + "";
         }
       }
      
@@ -1070,7 +1070,7 @@
             return
           }
           _.ajax({
-              url: popup.info.api_base_url + '/sfo/popup_windows/'+ popup_window_id + '?project=' + project,
+              url: popup.info.api_base_url + '/sfo/popup_windows/'+ popup_window_id + '?project=' + encodeURIComponent(project),
               type: 'GET',
               credentials: false,
               cors: true,
@@ -1160,12 +1160,12 @@
       //如果不是有效的http开头的字符串
       popup.log('popup 必须填写有效 api_base_url');
       return false;
-    }else {
+    }else{
       //如果是有效的http开头的字符串
       if(popup.info.api_base_url.slice(0,5) === 'http:' && location.protocol === 'https:'){
         popup.log('您的当前页面是https的地址，api_base_url 也必须是https！');
         return false;
-      }else {
+      }else{
         popup.info.api_base_url = popup.info.api_base_url.slice(-1) === '/' ? popup.info.api_base_url.slice(0,-1):popup.info.api_base_url; 
       }
     }
@@ -1213,7 +1213,7 @@
     }
     if(popup.testSend.hasParam()){
       popup.testSend.start();    
-    }else {
+    }else{
 
       popup.listenPageStateChange();
       // 设置需要监听的事件
@@ -1282,17 +1282,9 @@
       // 需要转化的uuid列表
       var uuid_list = [];
       
+      // 找出最小的step，下次轮询的时间间隔。
       _.each(arr, function(item){
         var convert_window = item.is_in_convert_window;
-
-        // 当前时间超过最大转化期,不进行轮询转化
-        if (Date.now() > convert_window.expire_time) {
-          delete item.is_in_convert_window;
-          return false;
-        }
-
-        // 将需要转化的uuid放到数组中
-        uuid_list.push(convert_window.uuid);
 
         // 没有step，则进行初始化,5秒，10秒，最大600秒
         if(!convert_window.step){
@@ -1304,6 +1296,26 @@
           min_step = convert_window.step;
         }
       });
+
+      // 最小的step （10） 和 expire_time-当前时间去比较，小于step，则删除is_in_convert_window
+      _.each(arr, function(item){
+        if(!item.is_in_convert_window){
+          return false;
+        }
+        var now = new Date().getTime();
+        var expire_time = item.is_in_convert_window.expire_time;
+        var step_time = now + min_step;
+
+        // 当前时间超过最大转化期或者step时间大于过期时间-当前时间，不进行轮询转化
+        if( now > expire_time  || step_time > expire_time - now){
+          delete item.is_in_convert_window;
+          return false;
+        }
+
+        // 将需要转化的uuid放到数组中
+        uuid_list.push(item.is_in_convert_window.uuid);
+      });
+
       
       if(!uuid_list.length){
         return false;
@@ -1314,7 +1326,7 @@
       }
       timer = setTimeout(function() {
           _.ajax({
-            url: popup.info.api_base_url +'/sfo/popup_displays?project='+ project +'&popup_display_uuids='+ uuid_list,
+            url: popup.info.api_base_url +'/sfo/popup_displays?project='+ encodeURIComponent(project) +'&popup_display_uuids='+ encodeURIComponent(uuid_list),
             type: 'GET',
             cors: true,
             credentials: false,
@@ -1386,7 +1398,7 @@
           if(expire_month >= 11){
             expire_time.setFullYear(expire_time.getFullYear() +  parseInt(expire_month/11));      
             expire_time.setMonth(expire_month%11);
-          }else {
+          }else{
             expire_time.setMonth(expire_month);
           }
           expire_time.setDate(1);      
@@ -1420,7 +1432,7 @@
         if(unit in is_in){
           return is_in[unit]();
         }
-      }else {
+      }else{
         return is_in.second(unit);
       }
     },
@@ -1477,7 +1489,7 @@
           if(expire_month <= 0){
             expire_time.setFullYear(expire_time.getFullYear() + (parseInt(expire_month/12) -1));      
             expire_time.setMonth(12 + expire_month%12 -1);
-          }else {
+          }else{
             expire_time.setMonth(expire_month-1);
           }
           expire_time.setDate(1);      
@@ -1511,7 +1523,7 @@
         if(unit in is_in){
           return is_in[unit]();
         }
-      }else {
+      }else{
         return is_in.second(unit);
       }
     },
@@ -1576,7 +1588,7 @@
           if(expire_month >= 11){
             expire_time.setFullYear(expire_time.getFullYear() + expire_month/11);      
             expire_time.setMonth(expire_month%11);
-          }else {
+          }else{
             expire_time.setMonth(expire_month);
           }
           expire_time.setDate(1);      
@@ -1610,7 +1622,7 @@
         if(unit in is_in){
           return is_in[unit]();
         }
-      }else {
+      }else{
         return is_in.second(unit);
       }
 
@@ -1668,7 +1680,7 @@
     var already_displayed = false;
 
     if(_.isArray(plan_list) && _.isObject(plan_list[0]) && plan_list.length > 0){
-
+      salog('--------------------触发事件开始--------------------');
       // 先遍历所有规则，得到plan_state(是否触发)
       _.each(plan_list,function(plan){
         // 因为是引用数据，需要重置match_state
@@ -1684,17 +1696,17 @@
         if(plan.match_state === true ){
           if(already_displayed === false){
             already_displayed = true;
-            salog('弹窗流程-优先弹窗-渲染');
+            salog('检查完毕-优先弹窗-开始',plan.plan.cname);
             new popup.PopupCheck(plan,true);
           }else if(already_displayed === true){
-            salog('弹窗流程-非优先弹窗-不渲染');          
+            salog('检查完毕-非优先弹窗-不渲染',plan.plan.cname);          
             new popup.PopupCheck(plan,false);
           }
-        }else {
-          salog('检查-弹窗流程-失败-当前计划', plan.plan.plan_id, plan);        
+        }else{
+          salog('检查完毕-计划-不满足', plan.plan.cname);        
         }
       });
-
+      salog('--------------------触发事件结束--------------------');
     }
 
   };
@@ -1705,7 +1717,7 @@
     this.current_time = (new Date()).getTime();
     if(isShow){
       this.displayPopup();
-    }else {
+    }else{
       this.hidePopup();
     }
   };
@@ -1739,7 +1751,7 @@
       var temp = JSON.parse(popupTemplate.content);
       var ele = new ElementRender(temp);
     }catch(e){
-      popup.log('renderPopup Error', e);
+      popup.log('--弹窗展示-渲染错误', e);
     }
     
     // 挂载plan和uuid
@@ -1748,7 +1760,7 @@
 
     // is_control_group:是否对照组，对照组不渲染弹框，只发弹窗埋点。
     ele.isRender = !this.plan.is_control_group;
-    salog('弹窗展示-是否是对照组',this.plan.is_control_group);
+    salog('--弹窗展示-是否是对照组',this.plan.is_control_group);
 
     // 处理弹框的点击操作
     ele.render(function(e){
@@ -1758,7 +1770,7 @@
 
 
   popup.PopupCheck.prototype.startConvertWindow = function(uuid){
-    salog('弹窗展示-ConvertWindow');  
+    salog('--弹窗展示-转化窗口设置');  
     if(_.isObject(this.plan.convert_window) && this.plan.convert_window.value){
       this.plan.is_in_convert_window = {
        expire_time: popup.ruleTime.getExpire(this.plan.convert_window,this.current_time),
@@ -1774,20 +1786,21 @@
 
   };
   popup.PopupCheck.prototype.startPopupLimitWindow = function(){
-    salog('弹窗展示-PopupLimitWindow',this.plan.is_in_popup_limit_window);
+    salog('--弹窗展示-参与限制窗口设置');
     if(_.isObject(this.plan.re_enter) && this.plan.re_enter.value){
       if(!_.isObject(this.plan.is_in_popup_limit_window)){
         this.plan.is_in_popup_limit_window = {
           expire_time: popup.ruleTime.getExpire(this.plan.re_enter,this.current_time),
           count: 1
         };
-      }else {
+      }else{
         this.plan.is_in_popup_limit_window.count++;
       }
     }  
   };
 
   popup.PopupCheck.prototype.setGlobalLimit = function(){
+    salog('--弹窗展示-全局弹窗次数设置');  
     if(!_.isArray(popup.localData.global_popup_count)){
       popup.localData.global_popup_count = [];
     }
@@ -1802,10 +1815,11 @@
   };
 
   popup.PopupCheck.prototype.deletePlanAllWindow = function(){
-    var matchlist = this.plan.pattern_popup.match_list;
+    var matchlist = this.plan.pattern_popup.matcher_list;
     if(_.isArray(matchlist)){
       _.each(matchlist,function(match){
         if(match.is_in_window){
+          salog('--弹窗展示-重置各个规则的窗口计算-成功');            
           delete match.is_in_window;
         }
       });      
@@ -1827,7 +1841,7 @@
     this.current_time = (new Date()).getTime();
 
     _.each(this.rule_arr, function(rule,index){
-      salog('检查-准备-计划id-',plan_match.plan.plan_id,'-规则-',index+1,'-'+rule.event_name+'-'+rule.params[0]+'次');
+      salog('检查-计划',plan_match.plan.cname,'规则',index+1,rule.event_name,rule.params[0]);
     });
 
     this.checkPlanIsExpire();
@@ -1839,37 +1853,37 @@
 
   popup.RuleCheck.prototype.checkPlanIsExpire = function(){
     if(!this.plan.expire_at || (_.isNumber(this.plan.expire_at) && this.current_time < this.plan.expire_at)){
-      salog('检查-PlanExpire-计划没有过期-满足');
+      salog('--过期-满足');
       this.checkPlanIsAudience();
-    }else {
-      salog('检查-PlanExpire-计划已经过期-不满足');    
+    }else{
+      salog('--过期-不满足');    
     }
   };
 
   popup.RuleCheck.prototype.checkPlanIsAudience = function(){
     if(this.plan.is_audience === true){
-      salog('检查-是否受众-满足');
+      salog('--是否受众-满足');
       this.checkPlanSuspend();
-    }else {
-      salog('检查-是否受众-不满足');
+    }else{
+      salog('--是否受众-不满足');
     }
   };
 
   popup.RuleCheck.prototype.checkPlanSuspend = function(){
-    if(!this.plan.state || this.plan.state !== 'SUSPEND'){
-      salog('检查-PlanSuspend-非暂停-满足');      
+    if(!this.plan.status || this.plan.status !== 'SUSPEND'){
+      salog('--暂停-满足');      
       this.checkConvert();
-    }else {
-      salog('检查-PlanSuspend-暂停-不满足');      
+    }else{
+      salog('--暂停-不满足');      
     }
   };
 
   popup.RuleCheck.prototype.checkConvert = function(){
     if(!this.plan.is_in_convert_window){
-      salog('检查-ConvertWindow-不存在-满足',this.plan.is_in_convert_window);      
+      salog('--转化窗口存在-满足',this.plan.is_in_convert_window);      
       this.checkGlobalPopupInterval();
-    }else {
-      salog('检查-ConvertWindow-存在-不满足',this.plan.is_in_convert_window);    
+    }else{
+      salog('--转化窗口存在-不满足',this.plan.is_in_convert_window);    
     }
   };
 
@@ -1879,13 +1893,13 @@
     if(_.isArray(count) && count.length >= 1){
       var last_rule_time = popup.ruleTime.getLast(popup.localData.popup_interval_global, this.current_time);
       if(last_rule_time > count[0]){
-        salog('检查-GlobalPopupInterval-已经超过间隔-满足-',last_rule_time ,'>上次弹窗时间', count[0]);
+        salog('--全局弹窗间隔-满足-',last_rule_time ,'>上次弹窗时间', count[0]);
         this.checkPopupInterval();
-      }else {
-        salog('检查-GlobalPopupInterval-没有超过间隔-不满足-',last_rule_time ,'<上次弹窗时间', count[0]);
+      }else{
+        salog('检查-全局弹窗间隔-不满足-',last_rule_time ,'<上次弹窗时间', count[0]);
       }
-    }else {
-      salog('检查-GlobalPopupInterval-没有弹过窗-满足');  
+    }else{
+      salog('--全局弹窗间隔-没有弹过窗-满足');  
       this.checkPopupInterval();    
     }
   };
@@ -1893,14 +1907,14 @@
   popup.RuleCheck.prototype.checkPopupInterval = function(){
     if(_.isNumber(this.plan.is_in_popup_interval_window)){
       if(this.current_time > this.plan.is_in_popup_interval_window){
-        salog('检查-PopupInterval-当前时间大于固定弹窗间隔-满足');        
+        salog('--弹窗间隔-当前时间大于固定弹窗间隔-满足');        
         this.plan.is_in_popup_interval_window = null;      
         this.checkProperties();
-      }else {
-        salog('检查-PopupInterval-当前时间小于固定弹窗间隔-不满足');     
+      }else{
+        salog('--弹窗间隔-当前时间小于固定弹窗间隔-不满足');     
       }
-    }else {
-      salog('检查-PopupInterval-窗口不存在-新开');  
+    }else{
+      salog('--弹窗间隔-窗口不存在-新开');  
       this.plan.is_in_popup_interval_window = null;
       this.checkProperties();
     }
@@ -1908,7 +1922,7 @@
 
   // 检查事件的属性是否匹配
   popup.RuleCheck.prototype.checkProperties = function() {
-    salog('检查-PropertiesMatch');  
+    salog('--属性匹配');  
     var filter_map = {
       /**
        * 等于 
@@ -2217,7 +2231,7 @@
 
   // 检查窗口期目的是为了设置当前有效的count，然后再去check是否match
   popup.RuleCheck.prototype.checkWindowAndMatch = function(matched_rule){
-    salog('检查-WindowAndMatch',matched_rule);  
+    salog('--窗口期和次数',matched_rule);  
 
     var that = this;
   //遍历所有属性满足的rule matched_rule ，筛选出达到阈值的rule
@@ -2229,7 +2243,7 @@
       
       //数据异常就结束
       if(!rule.params || !rule.params[0]){
-      salog('检查-WindowAndMatch-匹配结论-规则数据异常');
+      salog('--窗口期和次数-规则数据异常');
 
         return false;
       }
@@ -2242,20 +2256,21 @@
       }else if(rule_count > 1 && _.isObject(rule.window) && rule.window.value > 0){
         // 如果是多次的，需要判断窗口期
         if(!_.isObject(rule.is_in_window) || !_.isNumber(rule.is_in_window.expire_time) || rule.is_in_window.expire_time < that.current_time){
+
           // 如果没有窗口，或者窗口异常，就设置窗口
           rule.is_in_window = {
             expire_time: popup.ruleTime.getExpire(rule.window, that.current_time),
             count: 1
           };
-        }else {
-          rule.is_in_window.count++;
+        }else{
+          rule.is_in_window.count = rule.is_in_window.count+1;
         }
 
         //check 当前count是否匹配rule_count
         if(rule.is_in_window.count >= rule_count){
           temp_matched_rule.push(rule);
-        }else {
-          salog('检查-WindowAndMatch-匹配结论-规则数',rule.is_in_window.count,'不匹配当前次数',rule_count);
+        }else{
+          salog('--窗口期和次数-规则数',rule.is_in_window.count,'不匹配当前次数',rule_count);
         }
 
       } 
@@ -2263,10 +2278,10 @@
     });
   //如果有1个规则达到阈值，就可以
     if(temp_matched_rule.length > 0){
-      salog('检查-WindowAndMatch-匹配结论-有匹配成功的规则',temp_matched_rule);    
+      salog('--窗口期和次数-有匹配成功的规则',temp_matched_rule);    
       this.checkGlobalPopupLimit();
-    }else {
-      salog('检查-WindowAndMatch-匹配结论-没有匹配成功的规则',temp_matched_rule);   
+    }else{
+      salog('--窗口期和次数-没有匹配成功的规则',temp_matched_rule);   
     }
 
   };
@@ -2288,7 +2303,8 @@
     var global_limit = popup.localData.msg_limit_global;
     var isTrue = true;
     var that = this;
-    if(_.isObject(global_limit) && (global_limit.is_in_use === true) && _.isArray(global_limit.limits) && _.isArray(popup.localData.global_popup_count)){
+
+    if(_.isObject(global_limit) && (global_limit.is_in_use === true) && _.isArray(global_limit.limits) && _.isArray(popup.localData.global_popup_count) && this.plan.global_msg_limit_enabled === true){
       _.each(global_limit.limits,function(limit){
        if(_.isObject(limit) && _.isNumber(limit.limit)){
           //todo getBeginTime  isInGlobalPopupLimit
@@ -2296,19 +2312,21 @@
           
           var current_count = popup.ruleTime.getArrMatchCount(popup.localData.global_popup_count , begin_time);
 
-          salog('检查-GlobalPopupLimit-已经弹窗次数-',current_count,'-限制的次数', limit.limit,'-限制时间-',begin_time);                  
-          if(current_count <= limit.limit){
+          salog('--全局弹窗限制-已经弹窗次数-',current_count,'-限制的次数', limit.limit,'-限制时间-',begin_time);                  
+          if(current_count < limit.limit){
             isTrue = isTrue && true;
-          }else {
+          }else{
             isTrue = isTrue && false;
           }
         }
       });
       if(isTrue){
         this.checkPopupLimit();
+      }else{
+        salog('--全局弹窗限制-不满足');      
       }
-    }else {
-      salog('检查-GlobalPopupLimit-参数异常-满足');    
+    }else{
+      salog('--全局弹窗限制-不满足(参数正常，已弹过窗，当前计划设置了限制)之一 - 满足');    
       this.checkPopupLimit();
     }
 
@@ -2330,26 +2348,26 @@
     if(_.isObject(this.plan.is_in_popup_limit_window) && _.isNumber(this.plan.is_in_popup_limit_window.expire_time) && _.isNumber(this.plan.is_in_popup_limit_window.count) ){
       // 如果参与限制窗口过期，那就是没有限制
       if(this.plan.is_in_popup_limit_window.expire_time < this.current_time){
-        salog('检查-PopupLimit-超过了参与限制窗口-开启新窗口-满足',this.plan.is_in_popup_limit_window);
+        salog('--参与限制-超过了参与限制窗口-开启新窗口-满足',this.plan.is_in_popup_limit_window);
         delete this.plan.is_in_popup_limit_window;
         this.plan_match.match_state = true;
-      }else {
+      }else{
         // 否则参与限制窗口没有过期，没有过期的话需要判断是否在限制内，如果在限制内，就表示匹配成功
         if(this.plan.is_in_popup_limit_window.count < this.plan.re_enter.limit){
-          salog('检查-PopupLimit-在窗口内且在参与限制次数内-满足',this.plan.is_in_popup_limit_window);
+          salog('--参与限制-在窗口内且在参与限制次数内-满足',this.plan.is_in_popup_limit_window);
           this.plan_match.match_state = true;
-        }else {
-          salog('检查-PopupLimit-在窗口内但是超过了参与限制-不满足',this.plan.is_in_popup_limit_window);
+        }else{
+          salog('--参与限制-在窗口内但是超过了参与限制-不满足',this.plan.is_in_popup_limit_window);
         }
         //如果不在限制内，就表示匹配失败，失败就结束
       }
-    }else {
+    }else{
       if(this.plan.is_in_popup_limit_window){
-        salog('检查-PopupLimit-有窗口但是窗口数据异常-开新窗口-满足',this.plan.is_in_popup_limit_window);          
+        salog('--参与限制-有窗口但是窗口数据异常-开新窗口-满足',this.plan.is_in_popup_limit_window);          
         //数据有异常或者没有窗口，做一次重置窗口操作
         delete this.plan.is_in_popup_limit_window;      
-      }else {
-        salog('检查-PopupLimit-不存在窗口-开新窗口-满足',this.plan.is_in_popup_limit_window);      
+      }else{
+        salog('--参与限制-不存在窗口-开新窗口-满足',this.plan.is_in_popup_limit_window);      
       }
 
       this.plan_match.match_state = true;
@@ -2368,7 +2386,12 @@
     },
     init: function () {
       popup.localData = this.getJSONData() || {};
-      popup.log('修改-内存-localData-',popup.localData);
+      // 初始化间隔时间
+      if(_.isNumber(popup.localData.config_pull_interval_ms)){
+        popup.updateDataAndSetListen.interval_time = popup.localData.config_pull_interval_ms;
+      }
+
+      popup.log('初始化-修改-内存-localData-',popup.localData);
     },
     getJSONData: function () {
       return _.localStorage.parse('sensorsdata202002-popupdata');
@@ -2406,7 +2429,7 @@
       });
 
       popup.convertPlans = data;
-      popup.log('需要做转化的plans',popup.convertPlans);
+      popup.log('初始化-异步的convertWindow',popup.convertPlans);
       popup.asyncConvert();
     },
     /**
@@ -2480,7 +2503,7 @@
 
 
       _.extend(popup.localData, serverData);
-      popup.log('比对数据-得到需要的-localData', popup.localData); 
+      popup.log('初始化-比对数据得到需要的-localData', popup.localData); 
     },
     /***
      * 根据localData获取eventRule,eventRule数据格式如下：
@@ -2529,11 +2552,18 @@
       // 按照优先级，从大到小进行排序
       _.each(eventRule, function (value) {
         value.sort(function (first, second) {
-          return second.plan.absolute_priority - first.plan.absolute_priority;
+          var result = second.plan.absolute_priority - first.plan.absolute_priority;
+          // 优先级相同，计划id越大，优先级越高，当优先级相同，则按照计划id从大到小进行排序
+          if(result === 0){
+            return second.plan.plan_id - first.plan.plan_id;
+          }
+          return result;
         });
       });
 
       popup.eventRule = eventRule;
+      popup.log('初始化-得到事件和计划的关系',eventRule);
+      popup.log('--------------------初始化完成--------------------等待事件触发计划--------------------');
     },
     /**
      * 监听埋点事件，判断是否在eventRule，调用rule.js的方法
@@ -2585,13 +2615,13 @@
       var project = popup.info.project;
       return new Promise(function (res, rej) {
         _.ajax({
-          url: popup.info.api_base_url + '/sfo/user_popup_configs/'+ distinct_id +'?platform='+ platform +'&project='+project,
+          url: popup.info.api_base_url + '/sfo/user_popup_configs/'+ distinct_id +'?platform='+ encodeURIComponent(platform) + '&project=' + encodeURIComponent(project),
           type: 'GET',
           cors: true,
           credentials: false,
           contentType: 'application/json',
           success: function (data) {
-            popup.log('修改-serverData-',data);
+            popup.log('初始化-修改-serverData-',data);
             popup.serverData = data;
             // 修改localData调用save去修改
             popup.localData.local_update_time = (new Date()).getTime();
@@ -2602,14 +2632,14 @@
             that.setIntervalTime(that.interval_time);
           },
           error: function () {
-            popup.log('修改-serverData-',{});          
+            popup.log('初始化-修改-serverData-',{});          
             popup.serverData = {};
             res();
             that.setIntervalTime(that.interval_time);
           }
         });
 
-      })
+      });
     },
     //定时获取数据
     setIntervalTime: function (time) {
@@ -2637,17 +2667,20 @@
             });
             local_data = localData;
           }
-      }, 1000);
+      }, 500);
     },
     //判断从何处获取数据
     initial: function () {
       popup.store.init();
+      // 初始化完成后，执行数据自动保存
+      this.updateLocalData();
+
       var last_time = popup.localData.local_update_time;
       var current_time = (new Date()).getTime();
       // 本地没数据，首次，直接用server
       if (!_.isNumber(last_time)) {
         this.setFirstListen();
-      }else {
+      }else{
       // 本地有数据
         var remain_time = current_time - last_time;
         //数据异常 或者 超过10分钟
@@ -2660,9 +2693,6 @@
           this.registerListen();
         }
       }
-      // 初始化完成后，执行数据自动保存
-      this.updateLocalData();
-
     },
     changeId: function(){
       this.stopAllState();
@@ -2678,7 +2708,7 @@
       // 清空异步的转化
       popup.convertPlans = [];
       // locadata 设置成空
-      popup.log('修改-内存-localData-',{});
+      popup.log('初始化-修改-内存-localData-',{});
       popup.localData = {};
     },
     startState: function(obj){
@@ -2688,9 +2718,9 @@
       if(obj.getLocalData){
         popup.store.init();   
       }
+      that.updateLocalData();
 
       this.getDataFromServer().then(function(){
-        that.updateLocalData();
       });
 
     }
@@ -2701,7 +2731,7 @@
     window.SensorsDataWebJSSDKPlugin = {
       popup:popup
     };
-  }else {
+  }else{
     window.SensorsDataWebJSSDKPlugin.popup = window.SensorsDataWebJSSDKPlugin.popup || popup;    
   }
   /*
@@ -2715,4 +2745,4 @@
 
   return popup;
 
-})));
+}));
