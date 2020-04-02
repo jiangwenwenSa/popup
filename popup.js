@@ -572,8 +572,8 @@
    */
 
 
-  var IMAGE_MAP={
-    close:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFoAAABaCAMAAAAPdrEwAAAAe1BMVEUAAAD////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////NgkbwAAAAKHRSTlMA5if6t/B0UjMSxpAtJB4MBfTr30oY6NjV0r2loZ6XkoaBenFp3UA/LNePaQAAAsxJREFUWMOsltlygzAMRRXMZsAsAZJmX9v6/7+wg1QXpjGxCDkvyWTIQZauDcCgzKLrPtnUSyGW9SbZX6OshDcQh36lH6j8MJ7pTZd6lGX6sr0IP7SDj7CA6chLoBkEFzm14nM1/P/2eGti1RZFq+LmdtwGw7afJ1Ue1dogcGCW4QptqCO2OPe1IbnL0Y7dE23wc2bJgSn44MFTvIMwLeMUXqZGfGKUkp+MPC2dwUjMGhWwUL7pnXRUsdbIIpow84VG1k9Xmf1e5U8Kq/R/68memAPqcggTCQUNc9SdL+iCL5jMd0B1j/RErh3LYrRyLa2po2x8KngJ9Uk5sWUwpZoVvIiiulNLhMwgHDhDED2MEH8X3zCDL4HV/R8lRTOEWYS0KWzt8GEm/mNLihpHKOeqJY6yLqDnbO42F1r9eXCzitMOfkuqfvkXTId6h1phSi5/ncbgneAtnDCAxTAzIn+POhfDFOObzAEsNLu0HXO06a4BCwd89wEk1h2ezdwl0rObvS5nNreHurg/lxKwsNPoHjXrHVhI+lMK3xjvMH4YelYzCSzc8V3zrx9CWtu5MG67eWEdhBSmI+GT7eIZt+Nny7YJ+y8ON9/cF1tWVL7LzTdTi6sSMtw9AE432wwl7u6MzqotMNwcM7Glc/TafRyB4+aa4dhdcoV993EDlptphlt3zZ72TgM8N88MDe3vDQWE5V6tWGaKyAbwqaiA5+aZQeETkk6QFtxuvhlaOkVwwxfgdq/IvHKbocBj6ac5OzYCIASBKGo10n+HBgakMswbaYDgTmX3fzgafhD4G+Hhg1cGXnT4PMFHVayCdVcBXGBu7cKwACOOC2YwTsIQ7KI7LBywJrlyByupK9Kw/lto4VFLAqLdmRwJiBDWwjDOI0QPPhPXRn3yTlyrILND4w7oOw3h5AlTPk5U/ddrZSk4RWW+C9hp2rgru6GiP/678n2UFPV1AAAAAElFTkSuQmCC'
+  var IMAGE_MAP = {
+    close: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFoAAABaCAMAAAAPdrEwAAAAe1BMVEUAAAD////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////NgkbwAAAAKHRSTlMA5if6t/B0UjMSxpAtJB4MBfTr30oY6NjV0r2loZ6XkoaBenFp3UA/LNePaQAAAsxJREFUWMOsltlygzAMRRXMZsAsAZJmX9v6/7+wg1QXpjGxCDkvyWTIQZauDcCgzKLrPtnUSyGW9SbZX6OshDcQh36lH6j8MJ7pTZd6lGX6sr0IP7SDj7CA6chLoBkEFzm14nM1/P/2eGti1RZFq+LmdtwGw7afJ1Ue1dogcGCW4QptqCO2OPe1IbnL0Y7dE23wc2bJgSn44MFTvIMwLeMUXqZGfGKUkp+MPC2dwUjMGhWwUL7pnXRUsdbIIpow84VG1k9Xmf1e5U8Kq/R/68memAPqcggTCQUNc9SdL+iCL5jMd0B1j/RErh3LYrRyLa2po2x8KngJ9Uk5sWUwpZoVvIiiulNLhMwgHDhDED2MEH8X3zCDL4HV/R8lRTOEWYS0KWzt8GEm/mNLihpHKOeqJY6yLqDnbO42F1r9eXCzitMOfkuqfvkXTId6h1phSi5/ncbgneAtnDCAxTAzIn+POhfDFOObzAEsNLu0HXO06a4BCwd89wEk1h2ezdwl0rObvS5nNreHurg/lxKwsNPoHjXrHVhI+lMK3xjvMH4YelYzCSzc8V3zrx9CWtu5MG67eWEdhBSmI+GT7eIZt+Nny7YJ+y8ON9/cF1tWVL7LzTdTi6sSMtw9AE432wwl7u6MzqotMNwcM7Glc/TafRyB4+aa4dhdcoV993EDlptphlt3zZ72TgM8N88MDe3vDQWE5V6tWGaKyAbwqaiA5+aZQeETkk6QFtxuvhlaOkVwwxfgdq/IvHKbocBj6ac5OzYCIASBKGo10n+HBgakMswbaYDgTmX3fzgafhD4G+Hhg1cGXnT4PMFHVayCdVcBXGBu7cKwACOOC2YwTsIQ7KI7LBywJrlyByupK9Kw/lto4VFLAqLdmRwJiBDWwjDOI0QPPhPXRn3yTlyrILND4w7oOw3h5AlTPk5U/ddrZSk4RWW+C9hp2rgru6GiP/678n2UFPV1AAAAAElFTkSuQmCC'
   };
 
 
@@ -590,17 +590,18 @@
     image_button: "img"
   };
 
-  var NODE_STYLE_MAP= {
+  var NODE_STYLE_MAP = {
     textAlign: "text-align",
-    lineHeight: "line-height",
+    // 后端不返回行间距，sdk写成固定的，行高是字体大小的 1.5 倍，字间距是1.5px
+    //lineHeight: "line-height",
     font: "font-size",
     backgroundColor: "background-color",
-    borderWidth: function(val){
-     return "border-width: "+ val + ";border-style: solid;";
+    borderWidth: function (val) {
+      return "border-width: " + val + ";border-style: solid;";
     },
     borderColor: "border-color",
     cornerRadius: "border-radius",
-    backgroundImage: function(val) {
+    backgroundImage: function (val) {
       return "background-image:url(" + val + ") no-repeat;";
     },
     margin: _.boxModel("margin"),
@@ -624,7 +625,7 @@
     // 是否对照组
     this.is_control_group = false;
     // 埋点使用的
-    this.msg = { 
+    this.msg = {
       $sf_msg_title: "",
       $sf_msg_content: "",
       $sf_msg_image_url: "",
@@ -641,112 +642,113 @@
      * 入口函数
      * @param {*} callback 
      */
-    render: function(callback) {
+    render: function (callback) {
       var that = this;
       // 已经存在一个弹框，则不渲染第二个弹框
       var el = document.querySelector("div[data-sf-mask]");
-      if(el){
+      if (el) {
         return false;
       }
-      
 
       return that.loadHeadImage(that.template).then(function (message) {
+        var plan_id = that.msg.plan.plan_id || "";
         _.extend(that.msg, message);
-
         //设置根元素属性
         that.template.isRoot = true;
 
         // 创建弹框元素
         that.containerEle = that.createView(that.template);
 
-        // 弹框绑定点击事件
-        _.addEvent(that.containerEle, "click", function(e) {
-          if (typeof callback === "function") {
+        // 对照组不渲染弹框，只触发埋点
+        if (that.is_control_group) {
+          that.popupFailed(2000);
+          return false;
+        }
+
+        // 创建遮罩层
+        that.maskEle = that.getElement({
+          nodeName: "div",
+          style: that.getStyle({
+            position: "fixed",
+            width: "100%",
+            height: "100%",
+            top: "0px",
+            left: "0px",
+            backgroundColor: _.getRgba(that.properties.maskColor),
+            "z-index": 999998
+          })
+        });
+        
+        _.addEvent(that.maskEle, "click", function (e) {
+          var target = e.target;
+          var mask_ele = target.getAttribute('data-ele-mask');
+          if(mask_ele && that.properties.maskCloseEnabled) {
+            popup.track.maskClick(that);
+            return false;
+          }
+
+            //弹框绑定点击事件
+          if(_.isFunction(callback)) {
             callback(e);
           }
         });
 
+        that.maskEle.setAttribute('data-sf-mask', true);
+        that.maskEle.appendChild(that.containerEle);
+        document.body.appendChild(that.maskEle);
         
-        // 对照组不渲染弹框，只触发埋点
-        if(that.is_control_group){
-          that.popupFailed(2000);
-        } else {
-           // 创建遮罩层
-          if (that.properties.maskColor) {
-            that.maskEle = that.getElement({
-              nodeName: "div",
-              style: that.getStyle({
-                position: "fixed",
-                width: "100%",
-                height: "100%",
-                top: "0px",
-                left: "0px",
-                backgroundColor: _.getRgba(that.properties.maskColor),
-                "z-index": 999998
-              })
-            });
-            that.maskEle.setAttribute('data-sf-mask',true);
-            document.body.appendChild(that.maskEle);
-          }
-
-          if(that.properties.maskCloseEnabled){
-            _.addEvent(that.maskEle, "click", function(e) {
-              popup.track.maskClick(that);
-            });
-          }
-          // 弹框插入页面中
-          var plan_id = that.msg.plan.plan_id || "";
-          document.body.appendChild(that.containerEle);
-          that.msg.$sf_succeed = true;
-          popup.track.popupDisplay(that);
-          popup.info.popup_listener.onLoadSuccess(plan_id);
-        }
-        
-      }, function(message){
+        // 设置弹框埋点和弹框回调函数
+        that.msg.$sf_succeed = true;
+        popup.track.popupDisplay(that);
+        popup.info.popup_listener.onLoadSuccess(plan_id);
+      }, function (message) {
+        // 设置弹框加载失败的埋点和回调
         _.extend(that.msg, message);
         that.popupFailed(1000);
       })
     },
-    popupFailed: function(fail_code){
-      var ERROR_CODE ={
+    popupFailed: function (fail_code) {
+      var ERROR_CODE = {
         1000: "图片加载失败",
-        2000: "对照组不渲染弹框"
+        2000: "对照组"
       };
       var plan_id = this.msg.plan.plan_id || "";
       var fail_reason = ERROR_CODE[fail_code];
       this.msg.$sf_succeed = false;
       this.msg.$sf_fail_reason = fail_reason;
       popup.track.popupDisplay(this);
-      popup.info.popup_listener.onLoadFailed(plan_id, fail_code, fail_reason);
+      if (fail_code === 1000) {
+        popup.info.popup_listener.onLoadFailed(plan_id, fail_code, fail_reason);
+      }
     },
     /**
      * 根据样式，属性，子节点，action创建元素，返回创建的元素
      * @param {*} obj 
      */
-    getElement: function(obj) {
+    getElement: function (obj) {
       var nodeName = obj.nodeName || "div";
       var style = obj.style;
       var attr = obj.attr;
       var child = obj.child;
       var action = obj.action;
       var element_info = obj.element_info;
-      var ele = document.createElement(nodeName);   
+      var ele = document.createElement(nodeName);
       // 设置样式
       if (style) {
         ele.style = style;
-      } 
+      }
       // 设置src，或者innertext
       if (attr) {
-        _.each(attr,function(value,key){
-           if(value){
-             ele[key] = value;
-           }
+        _.each(attr, function (value, key) {
+          if (value) {
+            ele[key] = value;
+          }
         });
       }
       // 插入子节点
       if (child && child.length) {
-        _.each(child, function(value){
-          if(!value){
+        _.each(child, function (value) {
+          if (!value) {
             return false;
           }
           ele.appendChild(value);
@@ -757,8 +759,8 @@
         ele.setAttribute("data-action", JSON.stringify(action.H5));
       }
       // 将元素类型挂载到元素属性上，埋点使用
-      if(element_info){
-        ele.setAttribute("data-ele-info", JSON.stringify(element_info));
+      if (element_info) {
+        ele.setAttribute("data-info", JSON.stringify(element_info));
       }
       return ele;
     },
@@ -766,14 +768,14 @@
      * 设置元素的样式
      * @param {*} style 
      */
-    getStyle: function(style) {
+    getStyle: function (style) {
       var styleStr = "";
-      var arr = ['msgType','text','image','name','isHidden','align','localImageName'];
-      _.each(style, function(value, key){
+      var arr = ['msgType', 'text', 'image', 'name', 'isHidden', 'align', 'localImageName'];
+      _.each(style, function (value, key) {
         var value = _.conversionNum(value);
         var keyMap = NODE_STYLE_MAP[key];
 
-        if(arr.indexOf(key) >= 0){
+        if (arr.indexOf(key) >= 0) {
           return false;
         }
 
@@ -792,72 +794,81 @@
      * 递归创建弹框DOM节点
      * @param {*} template 
      */
-    createView: function(template) {
+    createView: function (template) {
       var child = [];
       var style = {
-          "box-sizing": "border-box",
-          display: "block",
-          overflow: "hidden"
+        "box-sizing": "border-box",
+        display: "block",
+        "pointer-events": "auto",
       };
       var attr = {};
       var nodeName = NODE_NAME_MAP[template.type] || null;
-      // 最外层盒子没有properties，兼容处理
       template.properties = template.properties || {};
+      template.layout = template.layout || {};
+      var font = template.properties.font;
+      // 这里做一个容错处理，如果没有返回font则用12px
+      var lineHeight = font ? parseInt(font) * 1.7 + 'px' : 12 * 1.7 + 'px';
 
-      if(template.properties.isHidden || !template.layout){
+      if (template.properties.isHidden) {
         return false;
       }
-         
+
       if (template.properties.text) {
         attr.innerText = template.properties.text;
       } else if (template.properties.image) {
-        if( template.properties.localImageName){
+        if (template.properties.localImageName) {
           attr.src = IMAGE_MAP[template.properties.localImageName];
-        }else {
+        } else {
           attr.src = template.properties.image;
         }
       }
-      
 
       // 根节点增加z-index属性
       if (template.isRoot) {
-        style.position = "fixed";
-        style["z-index"] = 999999;
-        if(template.layout.margin){
-          _.extend(style,template.layout.margin);
-          delete template.layout.margin;
-        }
+        _.extend(style, {
+          position: "relative",
+          "z-index": 999999,
+          "pointer-events": "none"
+        });
       }
 
       // 设置不同节点的样式
-      switch(template.type){
+      switch (template.type) {
         case "row":
           style.display = "flex";
           break;
         case "link":
-          _.extend(style,{
+          _.extend(style, {
             "text-decoration": "underline",
-            outline: "none"
+            outline: "none",
+            "letter-spacing": '1px',
+            "line-height": lineHeight,
           });
           break;
         case "label":
           _.extend(style, {
             "white-space": "pre-wrap",
-            "word-wrap": "break-word"
+            "word-wrap": "break-word",
+            "letter-spacing": '1px',
+            "line-height": lineHeight,
           });
           break;
         case "button":
           // 去除button的外边框
-          style.outline = "none";
+          _.extend(style, {
+            outline: "none",
+            "letter-spacing": '1px',
+            "line-height": lineHeight,
+          });
           break;
       }
 
       // 合并样式
       _.extend(style, template.layout, template.properties);
-     
+
       // 创建子元素
       if (template.subviews && template.subviews.length > 0) {
-        _.each(template.subviews, function(value) {
+        _.each(template.subviews, function (value) {
           child.push(this.createView(value));
         }, this);
       }
@@ -874,36 +885,37 @@
         child: child,
         action: template.action
       });
-      
+
       // 左对齐、右对齐，居中使用flex布局处理
-      if(template.layout.align) {
-          var alignMap = {
-             "center":"center",
-             "left":"flex-start",
-             "right":"flex-end",
-          };
-          var container = document.createElement("div");
-          // 当前是关闭按钮，并且点击遮罩层开启关闭
-          if(template.properties.msgType === 'close' && this.properties.maskCloseEnabled){
-            container.setAttribute("data-mask-close", 'true');
-          }
-          container.style = "display:flex;justify-content:"+ alignMap[template.layout.align] + ";";
-          container.appendChild(element);
-          return container;
+      if (template.layout.align) {
+        var alignMap = {
+          "center": "center",
+          "left": "flex-start",
+          "right": "flex-end",
+        };
+        var container = document.createElement("div");
+        var style = "display:flex;justify-content:" + alignMap[template.layout.align] + ";";
+        
+        if (template.isRoot) {
+          // 点击穿透会导致横屏下弹框不能滚动，所以加上自定义属性，判断点击到自定义属性则是遮罩层
+          container.style = style + "width:100%;height:100%;overflow-y:auto;box-sizing: border-box;";
+          container.setAttribute('data-ele-mask', true);
+        } else {
+          container.style = style;
+        }
+        container.appendChild(element);
+        return container;
       }
 
       return element;
-
     },
     /**
      * 关闭弹框
      */
-    destory: function() {
+    destory: function () {
       var plan_id = this.msg.plan.plan_id || "";
-
       popup.info.popup_listener.onClose(plan_id);
       document.body.removeChild(this.maskEle);
-      document.body.removeChild(this.containerEle);
     },
     /**
      * 加载弹框中的图片
@@ -911,28 +923,28 @@
      */
     loadHeadImage: function (template) {
       var message = {
-        $sf_msg_image_url : "",
-        $sf_msg_title : "",
-        $sf_msg_content : "",
+        $sf_msg_image_url: "",
+        $sf_msg_title: "",
+        $sf_msg_content: "",
       };
 
-      function getImgSrc(template){
-        _.each(template.subviews, function(temp){
+      function getImgSrc(template) {
+        _.each(template.subviews, function (temp) {
           var properties = temp.properties;
-          if(!properties){
+          if (!properties) {
             return false;
           }
 
-          if(properties.msgType === "title"){
+          if (properties.msgType === "title") {
             message.$sf_msg_title = properties.text;
-          }else if(properties.msgType === "content"){
+          } else if (properties.msgType === "content") {
             message.$sf_msg_content = properties.text;
-          }else if(temp.type === "image"){
+          } else if (temp.type === "image") {
             message.$sf_msg_image_url = properties.image;
           }
-          
-          if(temp.subviews){
-            getImgSrc(temp); 
+
+          if (temp.subviews) {
+            getImgSrc(temp);
           }
         });
       }
@@ -954,7 +966,7 @@
           reject(message);
         };
       });
-      
+
     }
   };
 
@@ -1065,17 +1077,8 @@
        /**@type {HTMLElement} **/
       var target = e.target;
       var action_value = target.getAttribute('data-action');
-      var element_info = target.getAttribute('data-ele-info');
-      var mask_close = target.getAttribute('data-mask-close');
+      var element_info = target.getAttribute('data-info');
       var msg = ele.msg || {};
-      /**
-       * 弹框关闭-点击遮罩层关闭
-       * 关闭按钮外层包裹了div，点击到div上，遮罩层不会关闭，给div自定义属性判断点击div，关闭遮罩层
-       */
-      if(mask_close === 'true'){
-        popup.track.maskClick(ele);
-        return false;
-      }
 
       if(!action_value){
         return false;
@@ -1403,10 +1406,6 @@
         // 将需要转化的uuid放到数组中
         uuid_list.push(item.is_in_convert_window.uuid);
       });
-
-      // console.log('min_step',min_step)
-      // console.log('map',JSON.stringify(arr.map((item)=> item.is_in_convert_window),0,1))
-
       
       if(!uuid_list.length){
         return false;
@@ -2014,7 +2013,6 @@
 
   // 检查事件的属性是否匹配
   popup.RuleCheck.prototype.checkProperties = function() {
-    salog('--属性匹配');  
     var filter_map = {
       /**
        * 等于 
@@ -2316,15 +2314,18 @@
       return flag;
     });
 
-    this.checkWindowAndMatch(matched_rule);
+    if(_.isArray(matched_rule) && matched_rule.length > 0){
+      this.checkWindowAndMatch(matched_rule);
+      salog('--属性匹配-满足',matched_rule);      
+    }else{
+      salog('--属性匹配-不满足');
+    }
 
   };
 
 
   // 检查窗口期目的是为了设置当前有效的count，然后再去check是否match
   popup.RuleCheck.prototype.checkWindowAndMatch = function(matched_rule){
-    salog('--窗口期和次数',matched_rule);  
-
     var that = this;
   //遍历所有属性满足的rule matched_rule ，筛选出达到阈值的rule
 
@@ -2479,7 +2480,9 @@
     init: function () {
       popup.localData = this.getJSONData() || {};
       // 初始化间隔时间
-      if(_.isNumber(popup.localData.config_pull_interval_ms)){
+      if(_.isNumber(popup.info.pull_interval_ms)){
+        popup.updateDataAndSetListen.interval_time = popup.info.pull_interval_ms;
+      }else if(_.isNumber(popup.localData.config_pull_interval_ms)){
         popup.updateDataAndSetListen.interval_time = popup.localData.config_pull_interval_ms;
       }
 
@@ -2658,7 +2661,7 @@
       });
 
       popup.eventRule = eventRule;
-      popup.log('初始化-得到事件和计划的关系',eventRule);
+      popup.log('初始化-得到事件和计划的关系', eventRule);
       popup.log('--------------------初始化完成--------------------等待事件触发计划--------------------');
     },
     /**
@@ -2666,32 +2669,23 @@
      * 传入参数：rule:{plan:{}, rule:[matcher]},data:事件参数
      */
     registerListen: function () {
-      var eventRule = popup.eventRule;
       var that = this;
       popup.sa.events.on('send', function (data) {
-          if(data.type === 'track_signup'){
-            that.signupEvent();
-            return;
+        if(data.type === 'track_signup'){
+          that.changeId();
+        }else{
+          if(data.event && popup.eventRule[data.event]){
+            popup.eventTriggerProcess(popup.eventRule[data.event], data);          
           }
-
-          var rule = eventRule[data.event];
-          if(!rule){
-            return false;
-          }
-          
-          popup.eventTriggerProcess(rule,data);
+        }
       });
+
       // 监听logout
       popup.sa.events.on('logout',function(distinct_id){
-        that.signupEvent();
+        that.changeId();
       });
+
       popup.sa.events.isReady();
-    },
-    /**
-     * 清除本地用户缓存的计划规则数据，同时立即使用新的 ID 拉取计划规则数据。
-     */
-    signupEvent: function(){
-      this.changeId();
     },
     /***
      * 设置localData和eventRule
