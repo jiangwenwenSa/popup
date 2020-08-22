@@ -6,7 +6,7 @@
     sa:{},
     //基本信息
     info:{},
-    lib_version: 'sf_sdk_version',
+    lib_version: '0.2.2',
     //获取的配置和参数
     defaultPara:{
       platform: 'H5'    
