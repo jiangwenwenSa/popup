@@ -6,7 +6,7 @@
     sa:{},
     //基本信息
     info:{},
-    lib_version: '0.1',
+    lib_version: 'sf_sdk_version',
     //获取的配置和参数
     defaultPara:{
       platform: 'H5'    
@@ -18,7 +18,9 @@
       // 本地新增的数据
       global_popup_count: [],
       //本地更新时间，用来定时更新数据
-      local_update_time: null
+      local_update_time: null,
+      //触发埋点的事件队列
+      eventQueue:[],
     },
     /**
      * 监控事件对应的规则映射，格式如下
@@ -27,11 +29,36 @@
      * }
      */
     eventRule: {},
+    /**
+     * 需要做转化的plans
+     */
     convertPlans:[],
+    isRun:false,
+    isVisible: true,
     log: function(){
-      try{
-        console.log.apply(console,arguments);
-      }catch(e){}  }
+      if (popup.info.show_log === true && typeof console === 'object' && typeof console.log === 'function') {
+        try {
+          function setArg(arg){
+            var temp = {};
+            if(arg && Object.prototype.toString.call(arg) === '[object Object]'){
+              for(var i in arg){
+                if(i && (i !== 'popup_window_content')){
+                  temp[i] = arg[i];                
+                }
+              }
+              return JSON.stringify(temp, null, '  ');
+            }else {
+              return arg;
+            }
+          }
+          arguments[0] = setArg(arguments[0]);
+          arguments[1] = setArg(arguments[1]);
+          return console.log.apply(console,  arguments);
+        } catch (e) {
+          console.log(arguments[0]);
+        }
+      }    
+    }
 
 
   };
@@ -39,7 +66,7 @@
   /**
    * @link https://github.com/taylorhakes/promise-polyfill/blob/master/dist/polyfill.min.js
    */
-  !function(e,n){"object"==typeof exports&&"undefined"!=typeof module?n():"function"==typeof define&&define.amd?define(n):n();}(0,function(){function e(e){var n=this.constructor;return this.then(function(t){return n.resolve(e()).then(function(){return t})},function(t){return n.resolve(e()).then(function(){return n.reject(t)})})}function n(e){return !(!e||"undefined"==typeof e.length)}function t(){}function o(e){if(!(this instanceof o))throw new TypeError("Promises must be constructed via new");if("function"!=typeof e)throw new TypeError("not a function");this._state=0,this._handled=!1,this._value=undefined,this._deferreds=[],c(e,this);}function r(e,n){for(;3===e._state;)e=e._value;0!==e._state?(e._handled=!0,o._immediateFn(function(){var t=1===e._state?n.onFulfilled:n.onRejected;if(null!==t){var o;try{o=t(e._value);}catch(r){return void f(n.promise,r)}i(n.promise,o);}else(1===e._state?i:f)(n.promise,e._value);})):e._deferreds.push(n);}function i(e,n){try{if(n===e)throw new TypeError("A promise cannot be resolved with itself.");if(n&&("object"==typeof n||"function"==typeof n)){var t=n.then;if(n instanceof o)return e._state=3,e._value=n,void u(e);if("function"==typeof t)return void c(function(e,n){return function(){e.apply(n,arguments);}}(t,n),e)}e._state=1,e._value=n,u(e);}catch(r){f(e,r);}}function f(e,n){e._state=2,e._value=n,u(e);}function u(e){2===e._state&&0===e._deferreds.length&&o._immediateFn(function(){e._handled||o._unhandledRejectionFn(e._value);});for(var n=0,t=e._deferreds.length;t>n;n++)r(e,e._deferreds[n]);e._deferreds=null;}function c(e,n){var t=!1;try{e(function(e){t||(t=!0,i(n,e));},function(e){t||(t=!0,f(n,e));});}catch(o){if(t)return;t=!0,f(n,o);}}var a=setTimeout;o.prototype["catch"]=function(e){return this.then(null,e)},o.prototype.then=function(e,n){var o=new this.constructor(t);return r(this,new function(e,n,t){this.onFulfilled="function"==typeof e?e:null,this.onRejected="function"==typeof n?n:null,this.promise=t;}(e,n,o)),o},o.prototype["finally"]=e,o.all=function(e){return new o(function(t,o){function r(e,n){try{if(n&&("object"==typeof n||"function"==typeof n)){var u=n.then;if("function"==typeof u)return void u.call(n,function(n){r(e,n);},o)}i[e]=n,0==--f&&t(i);}catch(c){o(c);}}if(!n(e))return o(new TypeError("Promise.all accepts an array"));var i=Array.prototype.slice.call(e);if(0===i.length)return t([]);for(var f=i.length,u=0;i.length>u;u++)r(u,i[u]);})},o.resolve=function(e){return e&&"object"==typeof e&&e.constructor===o?e:new o(function(n){n(e);})},o.reject=function(e){return new o(function(n,t){t(e);})},o.race=function(e){return new o(function(t,r){if(!n(e))return r(new TypeError("Promise.race accepts an array"));for(var i=0,f=e.length;f>i;i++)o.resolve(e[i]).then(t,r);})},o._immediateFn="function"==typeof setImmediate&&function(e){setImmediate(e);}||function(e){a(e,0);},o._unhandledRejectionFn=function(e){void 0!==console&&console&&console.warn("Possible Unhandled Promise Rejection:",e);};var l=function(){if("undefined"!=typeof self)return self;if("undefined"!=typeof window)return window;if("undefined"!=typeof global)return global;throw Error("unable to locate global object")}();"Promise"in l?l.Promise.prototype["finally"]||(l.Promise.prototype["finally"]=e):l.Promise=o;});
+  !function(e,n){"object"==typeof exports&&"undefined"!=typeof module?n():"function"==typeof define&&define.amd?define(n):n();}(0,function(){function e(e){var n=this.constructor;return this.then(function(t){return n.resolve(e()).then(function(){return t})},function(t){return n.resolve(e()).then(function(){return n.reject(t)})})}function n(e){return !(!e||"undefined"==typeof e.length)}function t(){}function o(e){if(!(this instanceof o))throw new TypeError("Promises must be constructed via new");if("function"!=typeof e)throw new TypeError("not a function");this._state=0,this._handled=!1,this._value=undefined,this._deferreds=[],c(e,this);}function r(e,n){for(;3===e._state;)e=e._value;0!==e._state?(e._handled=!0,o._immediateFn(function(){var t=1===e._state?n.onFulfilled:n.onRejected;if(null!==t){var o;try{o=t(e._value);}catch(r){return void f(n.promise,r)}i(n.promise,o);}else (1===e._state?i:f)(n.promise,e._value);})):e._deferreds.push(n);}function i(e,n){try{if(n===e)throw new TypeError("A promise cannot be resolved with itself.");if(n&&("object"==typeof n||"function"==typeof n)){var t=n.then;if(n instanceof o)return e._state=3,e._value=n,void u(e);if("function"==typeof t)return void c(function(e,n){return function(){e.apply(n,arguments);}}(t,n),e)}e._state=1,e._value=n,u(e);}catch(r){f(e,r);}}function f(e,n){e._state=2,e._value=n,u(e);}function u(e){2===e._state&&0===e._deferreds.length&&o._immediateFn(function(){e._handled||o._unhandledRejectionFn(e._value);});for(var n=0,t=e._deferreds.length;t>n;n++)r(e,e._deferreds[n]);e._deferreds=null;}function c(e,n){var t=!1;try{e(function(e){t||(t=!0,i(n,e));},function(e){t||(t=!0,f(n,e));});}catch(o){if(t)return;t=!0,f(n,o);}}var a=setTimeout;o.prototype["catch"]=function(e){return this.then(null,e)},o.prototype.then=function(e,n){var o=new this.constructor(t);return r(this,new function(e,n,t){this.onFulfilled="function"==typeof e?e:null,this.onRejected="function"==typeof n?n:null,this.promise=t;}(e,n,o)),o},o.prototype["finally"]=e,o.all=function(e){return new o(function(t,o){function r(e,n){try{if(n&&("object"==typeof n||"function"==typeof n)){var u=n.then;if("function"==typeof u)return void u.call(n,function(n){r(e,n);},o)}i[e]=n,0==--f&&t(i);}catch(c){o(c);}}if(!n(e))return o(new TypeError("Promise.all accepts an array"));var i=Array.prototype.slice.call(e);if(0===i.length)return t([]);for(var f=i.length,u=0;i.length>u;u++)r(u,i[u]);})},o.resolve=function(e){return e&&"object"==typeof e&&e.constructor===o?e:new o(function(n){n(e);})},o.reject=function(e){return new o(function(n,t){t(e);})},o.race=function(e){return new o(function(t,r){if(!n(e))return r(new TypeError("Promise.race accepts an array"));for(var i=0,f=e.length;f>i;i++)o.resolve(e[i]).then(t,r);})},o._immediateFn="function"==typeof setImmediate&&function(e){setImmediate(e);}||function(e){a(e,0);},o._unhandledRejectionFn=function(e){void 0!==console&&console&&console.warn("Possible Unhandled Promise Rejection:",e);};var l=function(){if("undefined"!=typeof self)return self;if("undefined"!=typeof window)return window;if("undefined"!=typeof global)return global;throw Error("unable to locate global object")}();"Promise"in l?l.Promise.prototype["finally"]||(l.Promise.prototype["finally"]=e):l.Promise=o;});
 
   var _ = {
     visibility:function (obj){
@@ -121,7 +148,7 @@
     boxModel: function (type) {
       return function (val) {
         if (typeof val !== "object") {
-          return val;
+          return type + ":" + val+ ";"; 
         }
         var str = "";
         for (var key in val) {
@@ -585,15 +612,13 @@
     label: "pre",
     image: "img",
     button: "button",
-    // link只返回了height，没有lineheight, 所有切换成button，可以自动撑满 height，或者可以使用p，必须要加上line-height
+    // 文字链接按钮使用button元素
     link: "button",
     image_button: "img"
   };
 
   var NODE_STYLE_MAP = {
     textAlign: "text-align",
-    // 后端不返回行间距，sdk写成固定的，行高是字体大小的 1.5 倍，字间距是1.5px
-    //lineHeight: "line-height",
     font: "font-size",
     backgroundColor: "background-color",
     borderWidth: function (val) {
@@ -602,12 +627,22 @@
     borderColor: "border-color",
     cornerRadius: "border-radius",
     backgroundImage: function (val) {
-      return "background-image:url(" + val + ") no-repeat;";
+      return "background-image:url(" + val + ");background-repeat: no-repeat;background-size: 100% 100%;";
     },
     margin: _.boxModel("margin"),
     padding: _.boxModel("padding"),
     maxHeight: "max-height",
-    maxWidth: "max-width"
+    maxWidth: "max-width",
+    scrollableX: function(value){
+      if(value){
+        return  "overflow-x:auto;"
+      }
+    },
+    scrollableY: function(value){
+      if(value){
+        return  "overflow-y:auto;"
+      }
+    }
   };
 
   /**
@@ -631,18 +666,19 @@
       $sf_msg_image_url: "",
       $sf_succeed: "",
       $sf_fail_reason: "",
+      // uuid
       $sf_msg_id: "",
       plan: {},
     };
+    this.popupCheckInstance = null;
   }
 
   ElementRender.prototype = {
     constructor: ElementRender,
     /**
      * 入口函数
-     * @param {*} callback 
      */
-    render: function (callback) {
+    render: function () {
       var that = this;
       // 已经存在一个弹框，则不渲染第二个弹框
       var el = document.querySelector("div[data-sf-mask]");
@@ -652,7 +688,15 @@
 
       return that.loadHeadImage(that.template).then(function (message) {
         var plan_id = that.msg.plan.plan_id || "";
+        var is_control_group = that.msg.plan.is_control_group;
         _.extend(that.msg, message);
+
+        // 预览信息解析失败
+        if(!that.properties || !that.template){
+          that.popupFailed(1001);
+          return Promise.reject();
+        }
+
         //设置根元素属性
         that.template.isRoot = true;
 
@@ -660,9 +704,9 @@
         that.containerEle = that.createView(that.template);
 
         // 对照组不渲染弹框，只触发埋点
-        if (that.is_control_group) {
+        if (is_control_group) {
           that.popupFailed(2000);
-          return false;
+          return Promise.reject();
         }
 
         // 创建遮罩层
@@ -682,34 +726,47 @@
         _.addEvent(that.maskEle, "click", function (e) {
           var target = e.target;
           var mask_ele = target.getAttribute('data-ele-mask');
+          // 有data-ele-mask属性，则表示点击的元素是遮罩层，遮罩层外层包裹了一个div，解决横屏滚动问题，所以点击遮罩层是点击到弹框外层包裹的div
           if(mask_ele && that.properties.maskCloseEnabled) {
             popup.track.maskClick(that);
             return false;
           }
 
-            //弹框绑定点击事件
-          if(_.isFunction(callback)) {
-            callback(e);
-          }
+          //弹框绑定点击事件
+          popup.track.elementClickCallback(e, that);
+         
         });
 
         that.maskEle.setAttribute('data-sf-mask', true);
         that.maskEle.appendChild(that.containerEle);
-        document.body.appendChild(that.maskEle);
+
+        if( window.self === window.top){
+          document.body.appendChild(that.maskEle);
+        }else {
+          try {
+            window.top.document.body.appendChild(that.maskEle);
+          }catch(e){
+            document.body.appendChild(that.maskEle);
+          }
+        }
+        
         
         // 设置弹框埋点和弹框回调函数
         that.msg.$sf_succeed = true;
         popup.track.popupDisplay(that);
         popup.info.popup_listener.onLoadSuccess(plan_id);
+        return Promise.resolve();
       }, function (message) {
         // 设置弹框加载失败的埋点和回调
         _.extend(that.msg, message);
         that.popupFailed(1000);
+        return Promise.reject();
       })
     },
     popupFailed: function (fail_code) {
       var ERROR_CODE = {
         1000: "图片加载失败",
+        1001: "预览信息解析失败，请检查计划配置",
         2000: "对照组"
       };
       var plan_id = this.msg.plan.plan_id || "";
@@ -717,7 +774,8 @@
       this.msg.$sf_succeed = false;
       this.msg.$sf_fail_reason = fail_reason;
       popup.track.popupDisplay(this);
-      if (fail_code === 1000) {
+      if (fail_code !== 2000) {
+        // 触发回调函数
         popup.info.popup_listener.onLoadFailed(plan_id, fail_code, fail_reason);
       }
     },
@@ -735,7 +793,7 @@
       var ele = document.createElement(nodeName);
       // 设置样式
       if (style) {
-        ele.style = style;
+        ele.setAttribute('style',style);
       }
       // 设置src，或者innertext
       if (attr) {
@@ -800,14 +858,14 @@
         "box-sizing": "border-box",
         display: "block",
         "pointer-events": "auto",
+        "overflow": "hidden"
       };
       var attr = {};
       var nodeName = NODE_NAME_MAP[template.type] || null;
       template.properties = template.properties || {};
       template.layout = template.layout || {};
       var font = template.properties.font;
-      // 这里做一个容错处理，如果没有返回font则用12px
-      var lineHeight = font ? parseInt(font) * 1.7 + 'px' : 12 * 1.7 + 'px';
+      var lineHeight = font ? parseInt(font) * 1.7 + 'px' : "normal";
 
       if (template.properties.isHidden) {
         return false;
@@ -825,9 +883,11 @@
 
       // 根节点增加z-index属性
       if (template.isRoot) {
+        template.layout.margin = "auto";
         _.extend(style, {
           position: "relative",
           "z-index": 999999,
+          // 增加点击穿透样式，点击关闭按钮旁边空白处，穿透到下面的遮罩层元素，解决点击关闭按钮空白处无法关闭弹框的问题。
           "pointer-events": "none"
         });
       }
@@ -852,7 +912,7 @@
             "letter-spacing": '1px',
             "line-height": lineHeight,
           });
-          break;
+          break; 
         case "button":
           // 去除button的外边框
           _.extend(style, {
@@ -865,6 +925,8 @@
 
       // 合并样式
       _.extend(style, template.layout, template.properties);
+
+      
 
       // 创建子元素
       if (template.subviews && template.subviews.length > 0) {
@@ -897,11 +959,13 @@
         var style = "display:flex;justify-content:" + alignMap[template.layout.align] + ";";
         
         if (template.isRoot) {
-          // 点击穿透会导致横屏下弹框不能滚动，所以加上自定义属性，判断点击到自定义属性则是遮罩层
-          container.style = style + "width:100%;height:100%;overflow-y:auto;box-sizing: border-box;";
+          // 弹框外层包裹了一个div，外层div设置flex，让弹框居中，
+          // 导致点击遮罩层，实际点击到的是包裹的div，用点击穿透的方式解决会导致横屏下弹框不能滚动，所以加上自定义属性，判断点击到自定义属性则是遮罩层
+          style = style + "width:100%;height:100%;overflow-y:auto;box-sizing: border-box;align-items:center;";
+          container.setAttribute('style',style);
           container.setAttribute('data-ele-mask', true);
         } else {
-          container.style = style;
+          container.setAttribute('style',style);
         }
         container.appendChild(element);
         return container;
@@ -914,8 +978,20 @@
      */
     destory: function () {
       var plan_id = this.msg.plan.plan_id || "";
+      if( window.self === window.top){
+        document.body.removeChild(this.maskEle);
+      }else {
+        try {
+          window.top.document.body.removeChild(this.maskEle);
+        }catch(e){
+          document.body.removeChild(this.maskEle);
+        }
+      }
+     
       popup.info.popup_listener.onClose(plan_id);
-      document.body.removeChild(this.maskEle);
+      if(this.popupCheckInstance){
+        this.popupCheckInstance.resetPopupIntervalWindow();
+      }
     },
     /**
      * 加载弹框中的图片
@@ -927,13 +1003,12 @@
         $sf_msg_title: "",
         $sf_msg_content: "",
       };
+      var $sf_msg_background_image = "";
+      var $sf_msg_btn_images = [];
 
       function getImgSrc(template) {
         _.each(template.subviews, function (temp) {
-          var properties = temp.properties;
-          if (!properties) {
-            return false;
-          }
+          var properties = temp.properties || {};
 
           if (properties.msgType === "title") {
             message.$sf_msg_title = properties.text;
@@ -941,6 +1016,10 @@
             message.$sf_msg_content = properties.text;
           } else if (temp.type === "image") {
             message.$sf_msg_image_url = properties.image;
+          }else if(temp.type === 'image_button' && !properties.localImageName){
+            $sf_msg_btn_images.push(properties.image);
+          }else if(properties.backgroundImage){
+            $sf_msg_background_image = properties.backgroundImage;
           }
 
           if (temp.subviews) {
@@ -950,23 +1029,50 @@
       }
       getImgSrc(template);
 
-      if (!message.$sf_msg_image_url) {
+      // 背景图片，图片，按钮图片都没有，则直接resolve
+      if ((!message.$sf_msg_image_url) && (!$sf_msg_background_image) && $sf_msg_btn_images.length === 0) {
         return Promise.resolve(message);
       }
 
-      return new Promise(function (resolve, reject) {
-        var img = new Image();
-        img.src = message.$sf_msg_image_url;
+      
+      function loadImage(url){
+        return new Promise(function (resolve, reject) {
+          var img = new Image();
+          img.src = url;
+    
+          img.onload = function () {
+            resolve();
+          };
+    
+          img.onerror = function () {
+            reject();
+          };
+    
+          img.onabort = function () {
+            reject();
+          };
+        });
+      }
+         
+      var promiseArry = [];
+      if(message.$sf_msg_image_url){
+        promiseArry.push(loadImage(message.$sf_msg_image_url));
+      }
+      if($sf_msg_background_image){
+        promiseArry.push(loadImage($sf_msg_background_image));
+      }
+      if($sf_msg_btn_images.length > 0){
+        _.each($sf_msg_btn_images,function(item,i){
+          promiseArry.push(loadImage(item));
+        });
+      }
 
-        img.onload = function () {
-          resolve(message);
-        };
 
-        img.onerror = function () {
-          reject(message);
-        };
+      return Promise.all(promiseArry).then(function () {
+         return Promise.resolve(message)
+      }).catch(function (e){
+         return Promise.reject(message)
       });
-
     }
   };
 
@@ -1112,25 +1218,30 @@
 
       // 关闭按钮的点击-关闭按钮、关闭icon，遮罩
       if(action_item.type === 'close'){
-        // action没有$sf_close_type字段，type为close，则表示是弹窗窗体内部按钮关闭
-        if(!action_item.$sf_close_type){
-          action_item.$sf_close_type = "POPUP_CLOSE_BUTTON";
-        }
         params.$sf_close_type = action_item.$sf_close_type;
         popup.track.popupClick(params,ele);
-        popup.info.popup_listener.onClick(plan_id, actionObject);
+        try {
+          popup.info.popup_listener.onClick(plan_id, actionObject);
+        }catch(e){
+          popup.log('popup_listener.onClick error',e);
+        }
         ele.destory();
       } else {
         // 非关闭按钮的点击
         popup.track.popupClick(params,ele);
-        popup.info.popup_listener.onClick(plan_id, actionObject);
+        try {
+          popup.info.popup_listener.onClick(plan_id, actionObject);
+        }catch(e){
+          popup.log('popup_listener.onClick error',e);
+        }
         action_item.closeable ? ele.destory() : null;
-        if(action_item.type === 'openlink'){
-          var dom = document.createElement('a');
-          dom.href = action_item.value;
-          dom.target = "_blank";
-          dom.click();
-        } 
+        // 配置'auto'，openlink 会自动跳转http开头的
+        if(popup.info.popup_listener.openlink === "auto" && action_item.type === 'openlink'){
+          if(action_item.value.slice(0,4) !== 'http'){
+            return false;
+          }
+          window.location.href = action_item.value;
+        }
       }
     }
   };
@@ -1154,10 +1265,10 @@
           var project = popup.info.project;
           var popup_window_id = this.hasParam().popup_window_id;
           if(!popup_window_id){
-            return
+            return false;
           }
           _.ajax({
-              url: popup.info.api_base_url + '/sfo/popup_windows/'+ popup_window_id + '?project=' + encodeURIComponent(project),
+              url: popup.info.api_base_url + '/sfo/popup_windows/'+ popup_window_id + '?project=' + encodeURIComponent(project) + '&time=' + (new Date()).getTime(),
               type: 'GET',
               credentials: false,
               cors: true,
@@ -1172,9 +1283,7 @@
                   var ele = new ElementRender(template);
                   ele.msg.$sf_msg_id = uuid;
                   // 处理弹框的点击操作和埋点
-                  ele.render(function (e) {
-                      popup.track.elementClickCallback(e, ele);
-                  });
+                  ele.render();
               }
           });
       }
@@ -1247,12 +1356,12 @@
       //如果不是有效的http开头的字符串
       popup.log('popup 必须填写有效 api_base_url');
       return false;
-    }else{
+    }else {
       //如果是有效的http开头的字符串
       if(popup.info.api_base_url.slice(0,5) === 'http:' && location.protocol === 'https:'){
         popup.log('您的当前页面是https的地址，api_base_url 也必须是https！');
         return false;
-      }else{
+      }else {
         popup.info.api_base_url = popup.info.api_base_url.slice(-1) === '/' ? popup.info.api_base_url.slice(0,-1):popup.info.api_base_url; 
       }
     }
@@ -1266,22 +1375,32 @@
     if(!_.isObject(popup.info.popup_listener)){
       popup.info.popup_listener = {
         onClick: function(){},
-        onLoadSuccess:function(){},
+        onLoadSuccess: function(){},
         onLoadFailed: function(){},
-        onClose:function(){}
+        onClose: function(){},
+        openlink: "customize",
       };
     }else {
-      if(!_.isFunction(popup.info.popup_listener.onClick)){
+      var popup_listener = popup.info.popup_listener;
+      if(!_.isFunction(popup_listener.onClick)){
         popup.info.popup_listener.onClick = function(){};
       }
-      if(!_.isFunction(popup.info.popup_listener.onLoadSuccess)){
+      if(!_.isFunction(popup_listener.onLoadSuccess)){
         popup.info.popup_listener.onLoadSuccess = function(){};
       }
-      if(!_.isFunction(popup.info.popup_listener.onLoadFailed)){
+      if(!_.isFunction(popup_listener.onLoadFailed)){
         popup.info.popup_listener.onLoadFailed = function(){};
       }
-      if(!_.isFunction(popup.info.popup_listener.onClose)){
+      if(!_.isFunction(popup_listener.onClose)){
         popup.info.popup_listener.onClose = function(){};
+      }
+      if(!_.isString(popup_listener.openlink)){
+        popup.info.popup_listener.openlink = "customize";
+      } else {
+        // openlink是字符串，但是value不是auto，customize，直接用默认的customize
+        if(popup_listener.openlink !== "auto" && popup_listener.openlink !== "customize"){
+          popup.info.popup_listener.openlink = "customize";
+        }
       }
     }
 
@@ -1290,17 +1409,80 @@
 
   };
 
+  // 判断是否和app打通，打通由app发送数据
+  popup.getBridgeState = function(){
+    if(_.isObject(popup.sa.para.app_js_bridge)){
+      if(popup.sa.para.app_js_bridge.is_mui){
+        return false;
+      }
+      if(popup.sa.bridge && popup.sa.bridge.is_verify_success){
+        return false;
+      }
+      return true;
+    } else {
+      return true;
+    }
+  };
+
+  // 返回true，则表示当前不执行
+  popup.setIsLoad = function(){
+    var isTop = window.self === window.top;
+    // h5页面
+    if(isTop){
+      if(window.SensorsDataWebJSSDKPopupIsLoad){
+        return false;
+      }
+      if(typeof window.SensorsDataWebJSSDKPopupIsLoad === 'undefined'){
+        window.SensorsDataWebJSSDKPopupIsLoad = true;
+        return true;
+      }
+     } else {
+       try {
+         // 内嵌iframe页面
+         if(window.top.SensorsDataWebJSSDKPopupIsLoad){
+           return false;
+         } else {
+           window.top.SensorsDataWebJSSDKPopupIsLoad = true;
+           return true;
+         }
+      } catch (e){
+         popup.log('非同域名iframe内嵌不能获取父级窗体内容',e);
+         return true;
+       }
+     }
+  };
+
   popup.init = function(para){
     // 不支持localStorage的话，再见。
     if(!this.isSupportPopup()){
       return false;
     }
+    // 仅支持移动端和ipad
+    if(window.screen.width && Number(window.screen.width) > 1024){
+      if (typeof console === 'object' && console.log) {
+        console.log('仅支持移动端和 ipad，PC 端或者屏幕宽度大于 1024 不支持！');
+      }
+      return false;
+    }
+
     if(!this.setPara(para)){
       return false;
     }
+
+    
+    // h5或者iframe页面已经加载过，则不继续执行
+    if(!this.setIsLoad()){
+      return false;
+    }
+
+    //获取打通状态，打通情况下，h5端不做处理
+    if(!this.getBridgeState()){
+      return false;
+    }
+
     if(popup.testSend.hasParam()){
       popup.testSend.start();    
-    }else{
+    }else {
 
       popup.listenPageStateChange();
       // 设置需要监听的事件
@@ -1317,15 +1499,18 @@
    */
   popup.changeCovertStatus = function(data){
     var arr = JSON.parse(JSON.stringify(popup.convertPlans));
-   
+    
     _.each(arr, function(item, index){
+      if(!item.is_in_convert_window){
+        return false;
+      }
        var step = item.is_in_convert_window.step;
        var uuid = item.is_in_convert_window.uuid;
        popup.convertPlans[index].is_in_convert_window.step = Math.min(step * 2, 600000);
-       if(!data){
-         return false;
-       }
-
+       
+      if(!data){
+        return false;
+      }
        _.each(data, function(result){
           if(result.popup_display_uuid === uuid && result.convert_time){
               delete popup.convertPlans[index].is_in_convert_window;
@@ -1335,13 +1520,15 @@
        });
     });
   };
+
+
+
   /* 
    * 遍历所有plan，如果有is_in_convert_window(转化窗口)，则开始轮询转化
   */
   popup.asyncConvert = function(plan) {
     var project = popup.info.project;
     var flag = false;
-    var timer = null;
 
     if(!plan && popup.convertPlans.length === 0){
       return false;
@@ -1363,60 +1550,52 @@
       if(_.isEmptyObject(popup.localData) || !_.isArray(popup.convertPlans) || popup.convertPlans.length === 0){
         return false;
       }
-      var arr = popup.convertPlans;
+      // 深拷贝一下，当前时间超过转换窗口期，则删除转换窗口和计划，直接删除会导致数组塌陷
+      var arr = JSON.parse(JSON.stringify(popup.convertPlans));
       // 数组中最小的step
       var min_step = (arr[0].is_in_convert_window && arr[0].is_in_convert_window.step) || 5000;
       // 需要转化的uuid列表
       var uuid_list = [];
-      
-      // 找出最小的step，下次轮询的时间间隔。
-      _.each(arr, function(item){
-        var convert_window = item.is_in_convert_window;
 
-        if(!convert_window){
-          return false;
-        }
-
-        // 没有step，则进行初始化,5秒，10秒，最大600秒
-        if(!convert_window.step){
-          convert_window.step = 5000;
-        }
-
-        // 找到最小的step
-        if(min_step > convert_window.step){
-          min_step = convert_window.step;
-        }
-      });
-
-      // 最小的step （10秒） 和 expire_time-当前时间去比较，小于step，则删除is_in_convert_window
-      _.each(arr, function(item){
+      _.each(arr, function(item, index){
         if(!item.is_in_convert_window){
           return false;
         }
         var now = new Date().getTime();
         var expire_time = item.is_in_convert_window.expire_time;
 
-        // 当前时间超过最大转化期或者step时间大于过期时间-当前时间，不进行轮询转化
-        // 过期时间为3:05，当前时间是3:04, min_step是60s*2(2分钟后即3:06，下次请求的时候已经过期)
-        if( now > expire_time  || min_step > expire_time - now){
-          delete item.is_in_convert_window;
+        // 当前时间超过最大转化期
+        if( now > expire_time){
+          delete popup.convertPlans[index].is_in_convert_window;
+          popup.convertPlans.splice(index, 1);
           return false;
         }
 
         // 将需要转化的uuid放到数组中
         uuid_list.push(item.is_in_convert_window.uuid);
+
+         // 没有step，则进行初始化,5秒，10秒，最大600秒
+         if(!item.is_in_convert_window.step){
+          item.is_in_convert_window.step = 5000;
+          popup.convertPlans[index].is_in_convert_window.step = 5000;
+        }
+
+        // 找到最小的step
+        if(min_step > item.is_in_convert_window.step){
+          min_step = item.is_in_convert_window.step;
+        }
       });
       
       if(!uuid_list.length){
         return false;
       }
         
-      if(timer){
-        clearTimeout(timer);
+      if(popup.asyncConvert.timer){
+        clearTimeout(popup.asyncConvert.timer);
       }
-      timer = setTimeout(function() {
+      popup.asyncConvert.timer = setTimeout(function() {
           _.ajax({
-            url: popup.info.api_base_url +'/sfo/popup_displays?project='+ encodeURIComponent(project) +'&popup_display_uuids='+ encodeURIComponent(uuid_list),
+            url: popup.info.api_base_url +'/sfo/popup_displays?project='+ encodeURIComponent(project) +'&popup_display_uuids='+ encodeURIComponent(uuid_list) + '&time=' + (new Date()).getTime(),
             type: 'GET',
             cors: true,
             credentials: false,
@@ -1432,7 +1611,6 @@
           });
       }, min_step);
     }
-      
     convertStatusPolling();
   };
 
@@ -1488,7 +1666,7 @@
           if(expire_month >= 11){
             expire_time.setFullYear(expire_time.getFullYear() +  parseInt(expire_month/11));      
             expire_time.setMonth(expire_month%11);
-          }else{
+          }else {
             expire_time.setMonth(expire_month);
           }
           expire_time.setDate(1);      
@@ -1522,7 +1700,7 @@
         if(unit in is_in){
           return is_in[unit]();
         }
-      }else{
+      }else {
         return is_in.second(unit);
       }
     },
@@ -1579,7 +1757,7 @@
           if(expire_month <= 0){
             expire_time.setFullYear(expire_time.getFullYear() + (parseInt(expire_month/12) -1));      
             expire_time.setMonth(12 + expire_month%12 -1);
-          }else{
+          }else {
             expire_time.setMonth(expire_month-1);
           }
           expire_time.setDate(1);      
@@ -1613,7 +1791,7 @@
         if(unit in is_in){
           return is_in[unit]();
         }
-      }else{
+      }else {
         return is_in.second(unit);
       }
     },
@@ -1678,7 +1856,7 @@
           if(expire_month >= 11){
             expire_time.setFullYear(expire_time.getFullYear() + expire_month/11);      
             expire_time.setMonth(expire_month%11);
-          }else{
+          }else {
             expire_time.setMonth(expire_month);
           }
           expire_time.setDate(1);      
@@ -1712,7 +1890,7 @@
         if(unit in is_in){
           return is_in[unit]();
         }
-      }else{
+      }else {
         return is_in.second(unit);
       }
 
@@ -1747,7 +1925,7 @@
   matcher新增的数据结构
   {
     is_in_window:{
-      expire_time
+      expire_time:窗口截至时间
       count:
     }
   }
@@ -1766,9 +1944,30 @@
     match_state:  //RuleCheck 后用来标记当前plan是否匹配
   }]
   */
-  popup.eventTriggerProcess = function(plan_list, event_properties){
-    var already_displayed = false;
+  popup.eventTriggerProcess = function(){
+    // 页面隐藏，不继续执行
+    if(!popup.isVisible){
+      return false;
+    }
+    if(!_.isArray(popup.localData.eventQueue)){
+       return false;
+    }
+    // 事件队列中没有数据，不继续执行
+    if(popup.localData.eventQueue.length === 0){
+      return false;
+    }
+    // 弹框流程没有走完，不继续执行
+    if(popup.isRun){
+      return false;
+    }
+    salog('事件队列---eventQueue',popup.localData.eventQueue);
 
+    var already_displayed = false;
+    var eventDate = popup.localData.eventQueue[0];
+    var plan_list = popup.eventRule[eventDate.event];
+
+    popup.isRun = true;
+    popup.localData.eventQueue.shift();
     if(_.isArray(plan_list) && _.isObject(plan_list[0]) && plan_list.length > 0){
       salog('--------------------触发事件开始--------------------');
       // 先遍历所有规则，得到plan_state(是否触发)
@@ -1778,27 +1977,41 @@
           delete plan.match_state;
         }
 
-        new popup.RuleCheck(plan, event_properties);
+        new popup.RuleCheck(plan, eventDate);
       });
       // 然后针对match_state，做弹窗优先级的判断
+      
+      var flag = false;
       _.each(plan_list,function(plan){
         // 如果是匹配了的做优先级检查。不匹配的就不管了
         if(plan.match_state === true ){
           if(already_displayed === false){
             already_displayed = true;
+            flag = true;
             salog('检查完毕-优先弹窗-开始',plan.plan.cname);
             new popup.PopupCheck(plan,true);
           }else if(already_displayed === true){
             salog('检查完毕-非优先弹窗-不渲染',plan.plan.cname);          
             new popup.PopupCheck(plan,false);
           }
-        }else{
+        }else {
           salog('检查完毕-计划-不满足', plan.plan.cname);        
         }
       });
+      if(!flag){
+        popup.completeWindowLifecycle();
+      }
       salog('--------------------触发事件结束--------------------');
     }
 
+  };
+
+  /**
+   * 完成窗口生命周期
+   */
+  popup.completeWindowLifecycle = function(){
+    popup.isRun = false;
+    popup.eventTriggerProcess();
   };
 
   // 弹窗的流程
@@ -1806,33 +2019,43 @@
     this.plan = plan.plan;
     this.current_time = (new Date()).getTime();
     if(isShow){
-      this.displayPopup();
-    }else{
+      this.renderPopup();
+    }else {
       this.hidePopup();
     }
   };
 
-  popup.PopupCheck.prototype.displayPopup = function(){
-    var uuid = _.getUuid()();
 
-    // 渲染弹框
-    this.renderPopup(uuid);
-
+  /**
+   * 创建窗口
+   */
+  popup.PopupCheck.prototype.createPopupWindow = function(uuid,isError){
     this.startConvertWindow(uuid);
     this.startPopupIntervalWindow();
     this.startPopupLimitWindow();
     this.setGlobalLimit();
     this.deletePlanAllWindow();
+    // 弹框失败，完成整个窗口的生命周期
+    if(isError){
+      popup.completeWindowLifecycle();
+    }
   };
+
   // 不展示也需要清楚工作
   popup.PopupCheck.prototype.hidePopup = function(){
     this.deletePlanAllWindow();  
   };
 
-  //渲染窗体并且埋点
-  popup.PopupCheck.prototype.renderPopup = function(uuid){
+
+  /**
+   * 渲染弹窗并且埋点
+   */
+  popup.PopupCheck.prototype.renderPopup = function(){
+    var that = this;
+    var uuid = _.getUuid()();
     // 当前计划的窗体描述结构
     var popupTemplate = this.plan.popup_window_content;
+
     if(!popupTemplate || !popupTemplate.content){
       return false;
     }
@@ -1841,25 +2064,31 @@
       var temp = JSON.parse(popupTemplate.content);
       var ele = new ElementRender(temp);
     }catch(e){
-      popup.log('--弹窗展示-渲染错误', e);
+      that.createPopupWindow(uuid,true);
+      salog('--弹窗展示-渲染错误', e);
     }
     
     // 挂载plan和uuid
     ele.msg.plan = this.plan;
     ele.msg.$sf_msg_id = uuid;
-
-    // is_control_group:是否对照组，对照组不渲染弹框，只发弹窗埋点。
-    ele.is_control_group = this.plan.is_control_group;
+    ele.popupCheckInstance = this;
 
     salog('--弹窗展示-是否是对照组',this.plan.is_control_group);
 
+    var render = ele.render();
+    if(!render){
+      salog('当前页面已有一个弹框正在渲染，本次弹框不渲染！');
+      return false;
+    }
     // 处理弹框的点击操作
-    ele.render(function(e){
-      popup.track.elementClickCallback(e, ele);
+    render.then(function(){
+      that.createPopupWindow(uuid);
+    },function(){
+      that.createPopupWindow(uuid,true);
     }); 
   };
 
-
+  // 设置转化窗口
   popup.PopupCheck.prototype.startConvertWindow = function(uuid){
     salog('--弹窗展示-转化窗口设置');  
     if(_.isObject(this.plan.convert_window) && this.plan.convert_window.value){
@@ -1870,26 +2099,38 @@
       popup.asyncConvert(this.plan);
     }
   };
+  // 设置弹框间隔窗口
   popup.PopupCheck.prototype.startPopupIntervalWindow = function(){
     if(_.isObject(this.plan.popup_interval) && this.plan.popup_interval.value){
       this.plan.is_in_popup_interval_window = popup.ruleTime.getExpire(this.plan.popup_interval,this.current_time);
     }
-
   };
+
+  // 关闭弹框重置弹框间隔窗口
+  popup.PopupCheck.prototype.resetPopupIntervalWindow = function(){
+    var time = (new Date()).getTime();
+    if(_.isObject(this.plan.popup_interval) && this.plan.popup_interval.value){
+      this.plan.is_in_popup_interval_window = popup.ruleTime.getExpire(this.plan.popup_interval,time);
+    }
+    this.resetGlobalLimit(time);
+    popup.completeWindowLifecycle();
+  };
+
+  // 设置参与限制窗口
   popup.PopupCheck.prototype.startPopupLimitWindow = function(){
-    salog('--弹窗展示-参与限制窗口设置');
+    salog('--弹窗展示-参与限制窗口设置重置');
     if(_.isObject(this.plan.re_enter) && this.plan.re_enter.value){
       if(!_.isObject(this.plan.is_in_popup_limit_window)){
         this.plan.is_in_popup_limit_window = {
           expire_time: popup.ruleTime.getExpire(this.plan.re_enter,this.current_time),
           count: 1
         };
-      }else{
+      }else {
         this.plan.is_in_popup_limit_window.count++;
       }
     }  
   };
-
+  // 设置全局弹框限制窗口
   popup.PopupCheck.prototype.setGlobalLimit = function(){
     salog('--弹窗展示-全局弹窗次数设置');  
     if(!_.isArray(popup.localData.global_popup_count)){
@@ -1905,6 +2146,14 @@
     }
   };
 
+  // 重置全局弹框限制窗口
+  popup.PopupCheck.prototype.resetGlobalLimit = function(time){
+    if(_.isArray(popup.localData.global_popup_count) && popup.localData.global_popup_count.length>0){
+      popup.localData.global_popup_count.shift();
+      popup.localData.global_popup_count.unshift(time);
+    }
+  };
+  // 删除计划窗口
   popup.PopupCheck.prototype.deletePlanAllWindow = function(){
     var matchlist = this.plan.pattern_popup.matcher_list;
     if(_.isArray(matchlist)){
@@ -1931,9 +2180,12 @@
 
     this.current_time = (new Date()).getTime();
 
-    _.each(this.rule_arr, function(rule,index){
-      salog('检查-计划',plan_match.plan.cname,'规则',index+1,rule.event_name,rule.params[0]);
+    var str = '-------------检查-计划-(' + this.plan.cname + ')';
+    _.each(this.rule_arr, function(rule){
+      str += ('--包含规则-(' + rule.event_name + '）-触发' + rule.params[0]+'次');
     });
+    salog(str);
+    salog(this.plan);
 
     this.checkPlanIsExpire();
 
@@ -1941,77 +2193,107 @@
 
   };
 
-
+  /**
+   * 检查计划是否过期
+   */
   popup.RuleCheck.prototype.checkPlanIsExpire = function(){
     if(!this.plan.expire_at || (_.isNumber(this.plan.expire_at) && this.current_time < this.plan.expire_at)){
       salog('--过期-满足');
       this.checkPlanIsAudience();
-    }else{
+    }else {
       salog('--过期-不满足');    
     }
   };
 
+  /**
+   * 检查是否受众
+   */
   popup.RuleCheck.prototype.checkPlanIsAudience = function(){
     if(this.plan.is_audience === true){
       salog('--是否受众-满足');
       this.checkPlanSuspend();
-    }else{
+    }else {
       salog('--是否受众-不满足');
     }
   };
 
+  /**
+   * 检查计划是否暂停
+   */
   popup.RuleCheck.prototype.checkPlanSuspend = function(){
     if(!this.plan.status || this.plan.status !== 'SUSPEND'){
       salog('--暂停-满足');      
       this.checkConvert();
-    }else{
+    }else {
       salog('--暂停-不满足');      
     }
   };
 
+  /**
+   * 检查是否在转化窗口期内
+   */
   popup.RuleCheck.prototype.checkConvert = function(){
-    if(!this.plan.is_in_convert_window){
-      salog('--转化窗口存在-满足',this.plan.is_in_convert_window);      
-      this.checkGlobalPopupInterval();
-    }else{
-      salog('--转化窗口存在-不满足',this.plan.is_in_convert_window);    
+    // 如果存在转化窗口，且转化窗口的超时<当前时间
+    if(_.isObject(this.plan.is_in_convert_window) && this.plan.is_in_convert_window.expire_time > this.current_time ) {
+      salog('--存在转化窗口 - 不满足',this.plan.is_in_convert_window);    
+      //弹框的时候，某个计划的轮询转换窗口此时已经过期，轮询转换判断间隔一段时间才会执行，导致窗口还没有删除，所以在这里删除过期的窗口
+    }else if(_.isObject(this.plan.is_in_convert_window) && this.current_time > this.plan.is_in_convert_window.expire_time){
+      salog('--转化窗口超时已经过期 - 满足',this.plan.is_in_convert_window);  
+      delete this.plan.is_in_convert_window; 
+      // 删除轮询转换数组中的计划 
+      for(var i=0;i<popup.convertPlans.length;i++){
+        if(this.plan.plan_id === popup.convertPlans[i].plan_id){
+          popup.convertPlans.splice(i,1);
+          i--;
+        }
+      } 
+      this.checkGlobalPopupInterval();    
+    }else {
+      salog('--不存在转化窗口 - 满足',this.plan.is_in_convert_window);      
+      this.checkGlobalPopupInterval();    
     }
   };
 
+  /**
+   * 检查是否处于全局弹框间隔期内
+   */
   //  使用的滑动弹窗计算方式（已当前时间+当前间隔算推，精确），比全老师的固定弹窗方式更精确（固定弹窗超时时间会改变）
   popup.RuleCheck.prototype.checkGlobalPopupInterval = function(){
     var count = popup.localData.global_popup_count;
     if(_.isArray(count) && count.length >= 1){
       var last_rule_time = popup.ruleTime.getLast(popup.localData.popup_interval_global, this.current_time);
       if(last_rule_time > count[0]){
-        salog('--全局弹窗间隔-满足-',last_rule_time ,'>上次弹窗时间', count[0]);
+        salog('--全局弹窗间隔-满足-' + last_rule_time + '>上次弹窗时间' + count[0]);
         this.checkPopupInterval();
-      }else{
-        salog('检查-全局弹窗间隔-不满足-',last_rule_time ,'<上次弹窗时间', count[0]);
+      }else {
+        salog('检查-全局弹窗间隔-不满足-' + last_rule_time + '<上次弹窗时间' + count[0]);
       }
-    }else{
+    }else {
       salog('--全局弹窗间隔-没有弹过窗-满足');  
       this.checkPopupInterval();    
     }
   };
 
+  /**
+   * 计划内弹框间隔
+   */
   popup.RuleCheck.prototype.checkPopupInterval = function(){
     if(_.isNumber(this.plan.is_in_popup_interval_window)){
       if(this.current_time > this.plan.is_in_popup_interval_window){
         salog('--弹窗间隔-当前时间大于固定弹窗间隔-满足');        
         this.plan.is_in_popup_interval_window = null;      
         this.checkProperties();
-      }else{
+      }else {
         salog('--弹窗间隔-当前时间小于固定弹窗间隔-不满足');     
       }
-    }else{
+    }else {
       salog('--弹窗间隔-窗口不存在-新开');  
       this.plan.is_in_popup_interval_window = null;
       this.checkProperties();
     }
   }; 
 
-  // 检查事件的属性是否匹配
+  // 检查事件的属性是否匹配，得到匹配事件属性的规则列表
   popup.RuleCheck.prototype.checkProperties = function() {
     var filter_map = {
       /**
@@ -2243,7 +2525,7 @@
           var data = new Date(property);
           return data >= startTime && data <= endTime;
         } catch (e){
-          popup.log('absolute_between Error', e);
+          salog('absolute_between Error', e);
         }
       },
       absoluteBetween: function (property, params) {
@@ -2253,7 +2535,7 @@
           var data = new Date(property);
           return data >= startTime && data <= endTime;
         } catch (e){
-          popup.log('absolute_between Error', e);
+          salog('absolute_between Error', e);
         }
       }
       
@@ -2262,21 +2544,25 @@
     var that = this;
     var matched_rule = _.filter(this.rule_arr, function (matcher) {
       // 没有属性筛选
-      if(!matcher.filter){
+      if(!matcher.filter || (matcher.filter.conditions && matcher.filter.conditions.length === 0)){
         return true;
       }
       var filter = matcher.filter;
       var relation = filter.relation;
-      var isOr = relation === 'or';
-      var isAnd = relation === 'and';
+      var isOr = String(relation).toLowerCase() === 'or';
+      var isAnd = String(relation).toLowerCase() === 'and';
       var flag = isAnd ? true : false; 
       var isNext = true;
       _.each(filter.conditions, function(item){
         if(!isNext){
           return false;
         }
+
+        if(!item.field){
+          return false;
+        }
          
-        var fields = item.field.split('.'); 
+        var fields_index = item.field.lastIndexOf('.'); 
         var params = item.params; 
         var function_name = item.function; 
 
@@ -2288,12 +2574,13 @@
         }
 
         // fileds不满足条件，则忽略这个conditions，继续执行下面的condition
-        if (!fields.length || fields.length < 3) {
+        if (fields_index < 0) {
           return false;
         }
 
         //获取事件的属性值
-        var property = that.event_data.properties[fields[2]]; 
+        var fields_name = item.field.slice(fields_index+1);
+        var property = that.event_data.properties[fields_name]; 
         var result = filter_map[function_name](property, params);
 
         // 如果是或的关系，并且有一项conditions满足条件，则其他conditions不用执行。直接把rule返回。
@@ -2317,13 +2604,13 @@
     if(_.isArray(matched_rule) && matched_rule.length > 0){
       this.checkWindowAndMatch(matched_rule);
       salog('--属性匹配-满足',matched_rule);      
-    }else{
+    }else {
       salog('--属性匹配-不满足');
     }
 
   };
 
-
+  // 检查计划中的规则matcher_list，获得满足条件的matcher
   // 检查窗口期目的是为了设置当前有效的count，然后再去check是否match
   popup.RuleCheck.prototype.checkWindowAndMatch = function(matched_rule){
     var that = this;
@@ -2355,14 +2642,14 @@
             expire_time: popup.ruleTime.getExpire(rule.window, that.current_time),
             count: 1
           };
-        }else{
+        }else {
           rule.is_in_window.count = rule.is_in_window.count+1;
         }
 
         //check 当前count是否匹配rule_count
         if(rule.is_in_window.count >= rule_count){
           temp_matched_rule.push(rule);
-        }else{
+        }else {
           salog('--窗口期和次数-规则数',rule.is_in_window.count,'不匹配当前次数',rule_count);
         }
 
@@ -2373,7 +2660,7 @@
     if(temp_matched_rule.length > 0){
       salog('--窗口期和次数-有匹配成功的规则',temp_matched_rule);    
       this.checkGlobalPopupLimit();
-    }else{
+    }else {
       salog('--窗口期和次数-没有匹配成功的规则',temp_matched_rule);   
     }
 
@@ -2391,7 +2678,9 @@
 
   };
   */
-
+  /**
+   * 检查全局弹框限制
+   */
   popup.RuleCheck.prototype.checkGlobalPopupLimit = function(){
     var global_limit = popup.localData.msg_limit_global;
     var isTrue = true;
@@ -2405,20 +2694,20 @@
           
           var current_count = popup.ruleTime.getArrMatchCount(popup.localData.global_popup_count , begin_time);
 
-          salog('--全局弹窗限制-已经弹窗次数-',current_count,'-限制的次数', limit.limit,'-限制时间-',begin_time);                  
+          salog('--全局弹窗限制-已经弹窗次数-' + current_count + '-限制的次数' + limit.limit + '-限制时间-' + begin_time);                  
           if(current_count < limit.limit){
             isTrue = isTrue && true;
-          }else{
+          }else {
             isTrue = isTrue && false;
           }
         }
       });
       if(isTrue){
         this.checkPopupLimit();
-      }else{
+      }else {
         salog('--全局弹窗限制-不满足');      
       }
-    }else{
+    }else {
       salog('--全局弹窗限制-不满足(参数正常，已弹过窗，当前计划设置了限制)之一 - 满足');    
       this.checkPopupLimit();
     }
@@ -2433,6 +2722,7 @@
   3. 窗口满足？
   */
   popup.RuleCheck.prototype.checkPopupLimit = function(){
+    // 没有参与限制，直接match_state为true
     if(!_.isObject(this.plan.re_enter) || !_.isNumber(this.plan.re_enter.value) || !_.isNumber(this.plan.re_enter.limit) ){
       this.plan_match.match_state = true;    
       return false;
@@ -2444,22 +2734,22 @@
         salog('--参与限制-超过了参与限制窗口-开启新窗口-满足',this.plan.is_in_popup_limit_window);
         delete this.plan.is_in_popup_limit_window;
         this.plan_match.match_state = true;
-      }else{
+      }else {
         // 否则参与限制窗口没有过期，没有过期的话需要判断是否在限制内，如果在限制内，就表示匹配成功
         if(this.plan.is_in_popup_limit_window.count < this.plan.re_enter.limit){
           salog('--参与限制-在窗口内且在参与限制次数内-满足',this.plan.is_in_popup_limit_window);
           this.plan_match.match_state = true;
-        }else{
+        }else {
           salog('--参与限制-在窗口内但是超过了参与限制-不满足',this.plan.is_in_popup_limit_window);
         }
         //如果不在限制内，就表示匹配失败，失败就结束
       }
-    }else{
+    }else {
       if(this.plan.is_in_popup_limit_window){
         salog('--参与限制-有窗口但是窗口数据异常-开新窗口-满足',this.plan.is_in_popup_limit_window);          
         //数据有异常或者没有窗口，做一次重置窗口操作
         delete this.plan.is_in_popup_limit_window;      
-      }else{
+      }else {
         salog('--参与限制-不存在窗口-开新窗口-满足',this.plan.is_in_popup_limit_window);      
       }
 
@@ -2473,20 +2763,18 @@
   每次打开页面，记录当前更新时间，并判断设置定时的定时器
   */
   popup.store = {
-    save: function (callback) {
-      callback(popup.localData);
-      this.saveJSONData();
-    },
     init: function () {
-      popup.localData = this.getJSONData() || {};
+      popup.localData = this.getJSONData() || {
+        global_popup_count: [],
+        local_update_time: null,
+        eventQueue:[],
+      };
       // 初始化间隔时间
-      if(_.isNumber(popup.info.pull_interval_ms)){
-        popup.updateDataAndSetListen.interval_time = popup.info.pull_interval_ms;
-      }else if(_.isNumber(popup.localData.config_pull_interval_ms)){
+      if(_.isNumber(popup.localData.config_pull_interval_ms)){
         popup.updateDataAndSetListen.interval_time = popup.localData.config_pull_interval_ms;
       }
 
-      popup.log('初始化-修改-内存-localData-',popup.localData);
+      popup.log('初始化-获取-内存-localData');
     },
     getJSONData: function () {
       return _.localStorage.parse('sensorsdata202002-popupdata');
@@ -2502,6 +2790,8 @@
 
   //每隔10分钟获取一次数据,每次打开页面，记录当前更新时间，并判断设置定时的定时器
   popup.updateDataAndSetListen = {
+    //当前状态，激活还是暂停
+    active_state: true, 
     // 请求间隔时间
     interval_time: 10 * 60 * 1000,
     // 保存的interval
@@ -2530,9 +2820,7 @@
     /**
      * 对比localData和serverData的plan，更新localData
      * 对比规则：
-     *  1、对比本地和远程两组相同的plan_id
-     *      1、last_update_config_time不相同，则使用远程的plan替换本地的plan
-     *      2、last_update_config_time相同，is_audience为false或者status不等于ACTIVE、SUSPEND，使用远程plan替换本地plan
+     *  1、对比本地和远程两组相同的plan_id,将本地的is_audience和audience_id修改为远程的数据
      *  2、本地多的plan_id，远程没有对应的plan_id，则删除本地的plan
      *  3、远程多的plan_id，新增到本地
      */
@@ -2598,7 +2886,7 @@
 
 
       _.extend(popup.localData, serverData);
-      popup.log('初始化-比对数据得到需要的-localData', popup.localData); 
+      popup.log('初始化-比对数据得到需要的-localData',popup.localData); 
     },
     /***
      * 根据localData获取eventRule,eventRule数据格式如下：
@@ -2610,11 +2898,9 @@
     getEventRule: function () {
       var popup_plans = popup.localData.popup_plans;
       var eventRule = {};
-
       if(!popup_plans || !_.isArray(popup_plans)){
         return false;
       }
-
       _.each(popup_plans, function (plan) {
         var matcher_list = plan.pattern_popup.matcher_list;
 
@@ -2647,7 +2933,6 @@
         });
 
       });
-    
       // 按照优先级，从大到小进行排序
       _.each(eventRule, function (value) {
         value.sort(function (first, second) {
@@ -2659,11 +2944,11 @@
           return result;
         });
       });
-
       popup.eventRule = eventRule;
-      popup.log('初始化-得到事件和计划的关系', eventRule);
+      popup.log('初始化-得到事件和计划的关系');
       popup.log('--------------------初始化完成--------------------等待事件触发计划--------------------');
     },
+
     /**
      * 监听埋点事件，判断是否在eventRule，调用rule.js的方法
      * 传入参数：rule:{plan:{}, rule:[matcher]},data:事件参数
@@ -2671,17 +2956,22 @@
     registerListen: function () {
       var that = this;
       popup.sa.events.on('send', function (data) {
-        if(data.type === 'track_signup'){
-          that.changeId();
-        }else{
-          if(data.event && popup.eventRule[data.event]){
-            popup.eventTriggerProcess(popup.eventRule[data.event], data);          
+        if(data.event && popup.eventRule[data.event]){
+          if(!_.isArray(popup.localData.eventQueue)){
+            popup.localData.eventQueue = [];
           }
+          popup.localData.eventQueue.push(data);
+
+          // popup.localData.eventQueue.push({
+          //   event_properties:data,
+          //   plan_list:popup.eventRule[data.event]
+          // });
+          popup.eventTriggerProcess();          
         }
       });
 
-      // 监听logout
-      popup.sa.events.on('logout',function(distinct_id){
+      // 监听切换distinct_id
+      popup.sa.events.on('changeDistinctId',function(id){
         that.changeId();
       });
 
@@ -2705,24 +2995,41 @@
       var project = popup.info.project;
       return new Promise(function (res, rej) {
         _.ajax({
-          url: popup.info.api_base_url + '/sfo/user_popup_configs/'+ distinct_id +'?platform='+ encodeURIComponent(platform) + '&project=' + encodeURIComponent(project),
+          url: popup.info.api_base_url + '/sfo/user_popup_configs/'+ distinct_id +'?platform='+ encodeURIComponent(platform) + '&project=' + encodeURIComponent(project) + '&time=' + (new Date()).getTime(),
           type: 'GET',
           cors: true,
           credentials: false,
           contentType: 'application/json',
           success: function (data) {
-            popup.log('初始化-修改-serverData-',data);
-            popup.serverData = data;
-            // 修改localData调用save去修改
-            popup.localData.local_update_time = (new Date()).getTime();
-            // 开始处理数据
-            that.setListenEvent();
-            res();
-            //设置10分钟后再次获取数据
-            that.setIntervalTime(that.interval_time);
+            if(!that.active_state){
+              rej();
+              return false;
+            }
+            popup.log('初始化-修改-serverData-ajax获取');
+            // 有数据且版本号
+            if (_.isObject(data) && data.server_current_time && data.popup_plans && /\d+\.\d+/.test(data.min_sdk_version_required) && parseFloat(data.min_sdk_version_required) <= parseFloat(popup.lib_version)) {
+              popup.serverData = data;
+              // 修改localData调用save去修改
+              popup.localData.local_update_time = (new Date()).getTime();
+              // 开始处理数据
+              that.setListenEvent();
+              res();
+              //设置10分钟后再次获取数据
+              that.setIntervalTime(that.interval_time);            
+            }else {
+              // 数据异常
+              popup.log('初始化-数据异常-请求返回的数据错误-中止');
+              popup.serverData = {};
+              popup.localData = {};
+              res();
+            }
           },
           error: function () {
-            popup.log('初始化-修改-serverData-',{});          
+            if(!that.active_state){
+              rej();
+              return false;
+            }          
+            popup.log('初始化-数据异常-请求错误-中止');
             popup.serverData = {};
             res();
             that.setIntervalTime(that.interval_time);
@@ -2735,6 +3042,7 @@
     setIntervalTime: function (time) {
       var that = this;
       this.data_interval = setTimeout(function () {
+        popup.log('10分钟定时更新数据开始-------');
         that.getDataFromServer();
       }, time);
     },
@@ -2746,15 +3054,14 @@
       });
     },
     /**
-     * 每隔1s对比LocalData，不相同，则更新LocalData
+     * 每隔500毫秒对比LocalData，不相同，则更新LocalData
      */
     updateLocalData: function() {
      var local_data = JSON.stringify(popup.localData);
      this.save_interval = setInterval(function(){
-        var localData = JSON.stringify(popup.localData);
+          var localData = JSON.stringify(popup.localData);
           if( local_data !== localData ){
-            popup.store.save(function(data){
-            });
+            popup.store.saveJSONData();
             local_data = localData;
           }
       }, 500);
@@ -2770,7 +3077,7 @@
       // 本地没数据，首次，直接用server
       if (!_.isNumber(last_time)) {
         this.setFirstListen();
-      }else{
+      }else {
       // 本地有数据
         var remain_time = current_time - last_time;
         //数据异常 或者 超过10分钟
@@ -2790,29 +3097,46 @@
     },
     // 清空所有状态
     stopAllState: function(){
+      this.active_state = false;
       // 清空监听 只要清空rule
       popup.eventRule = {};
       // 清空定时器     // 清楚定时保存
-      this.data_interval && clearTimeout(this.data_interval);
-      this.save_interval && clearInterval(this.save_interval);
+      this.data_interval && window.clearTimeout(this.data_interval);
+      this.save_interval && window.clearInterval(this.save_interval);
+      popup.asyncConvert.timer && window.clearTimeout(popup.asyncConvert.timer);
       // 清空异步的转化
       popup.convertPlans = [];
       // locadata 设置成空
-      popup.log('初始化-修改-内存-localData-',{});
+      popup.log('初始化-清空-localData');
       popup.localData = {};
+      // 重置isRun变量
+      this.resetState({isHidden:true});
+    },
+    resetState:function(obj){
+       // 当前页面没有渲染弹框,并且isRun为true，则重置为false
+       if((!document.querySelector("div[data-sf-mask]")) && popup.isRun){
+          popup.isRun = false;
+       }
+       if(obj.isHidden){
+          popup.isVisible = false;
+       }else {
+          popup.isVisible = true;
+       }
     },
     startState: function(obj){
+      this.active_state = true;
       obj = obj || {getLocalData:true};
-      // 重新获取数据，并开始监听，保存数据
       var that = this;
+      // 重新获取数据，并开始监听，保存数据
       if(obj.getLocalData){
-        popup.store.init();   
+        this.resetState({isHidden:false});
+        popup.store.init();
       }
-      that.updateLocalData();
-
       this.getDataFromServer().then(function(){
+        popup.store.saveJSONData();
+        that.updateLocalData();
       });
-
+      
     }
 
   };
@@ -2821,7 +3145,7 @@
     window.SensorsDataWebJSSDKPlugin = {
       popup:popup
     };
-  }else{
+  }else {
     window.SensorsDataWebJSSDKPlugin.popup = window.SensorsDataWebJSSDKPlugin.popup || popup;    
   }
   /*
