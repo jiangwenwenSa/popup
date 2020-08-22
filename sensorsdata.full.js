@@ -19,8 +19,9 @@ sdk的初始化和组织
 try{
 
 
-
 var sd = {};
+
+sd.modules = {};
 
 var _ = sd._ = {};
 
@@ -975,7 +976,10 @@ _.addEvent = function() {
 
 
     var register_event = function(element, type, handler) {
-        var useCapture = _.isObject(sd.para.heatmap) && sd.para.heatmap.useCapture ? true : false;
+        var useCapture =  _.isObject(sd.para.heatmap) && sd.para.heatmap.useCapture ? true : false;
+        if(_.isObject(sd.para.heatmap) && typeof sd.para.heatmap.useCapture === 'undefined' && type === 'click'){
+          useCapture = true;
+        }
         if (element && element.addEventListener) {
             element.addEventListener(type, function(e){
               e._getPath = fixEvent._getPath;
@@ -1107,7 +1111,8 @@ _.cookie = {
       try {
         sub = _.URL(url).hostname;
       } catch (e) {
-        // do nothing
+        sd.log(e);
+
       }
       if(typeof sub === 'string' && sub !== ''){
         sub = 'sajssdk_2015_' + name_prefix + '_' + sub.replace(/\./g, '_');
@@ -1129,7 +1134,29 @@ _.cookie = {
     }
   }
 };
+_.getElementContent = function(target,tagName){
+  var textContent = '';
+  var element_content = '';
+  if (target.textContent) {
+    textContent = _.trim(target.textContent);
+  }else if(target.innerText){
+    textContent = _.trim(target.innerText);
+  }
+  if (textContent) {
+    textContent = textContent.replace(/[\r\n]/g, ' ').replace(/[ ]+/g, ' ').substring(0, 255);
+  }
+  element_content = textContent || '';
 
+  // 针对inut默认只采集button和submit非名感的词汇。可以自定义（银联提）
+  if(tagName === 'input'|| tagName === 'INPUT'){
+    if(target.type === 'button' || target.type === 'submit'){
+      element_content = target.value || '';
+    } else if (sd.para.heatmap && (typeof sd.para.heatmap.collect_input === 'function') && sd.para.heatmap.collect_input(target)){
+      element_content = target.value || '';
+    }
+  }
+  return element_content;
+};
 // 获取元素的一些信息
 _.getEleInfo = function(obj){
   if(!obj.target){
@@ -1147,28 +1174,8 @@ _.getEleInfo = function(obj){
   props.$element_id = target.getAttribute('id');
   props.$element_class_name = typeof target.className === 'string' ? target.className : null;
   props.$element_target_url = target.getAttribute('href');
+  props.$element_content = _.getElementContent(target,tagName);
 
-  // 获取内容
-
-  var textContent = '';
-  if (target.textContent) {
-    textContent = _.trim(target.textContent);
-  }else if(target.innerText){
-    textContent = _.trim(target.innerText);
-  }
-  if (textContent) {
-    textContent = textContent.replace(/[\r\n]/g, ' ').replace(/[ ]+/g, ' ').substring(0, 255);
-  }
-  props.$element_content = textContent || '';
-
-  // 针对inut默认只采集button和submit非名感的词汇。可以自定义（银联提）
-  if(tagName === 'input'){
-    if(target.type === 'button' || target.type === 'submit'){
-      props.$element_content = target.value || '';
-    } else if (sd.para.heatmap && (typeof sd.para.heatmap.collect_input === 'function') && sd.para.heatmap.collect_input(target)){
-      props.$element_content = target.value || '';
-    }
-  }
 
   props = _.strip_empty_properties(props);
 
@@ -1192,6 +1199,8 @@ _.localStorage = {
     try {
       storedValue = JSON.parse(_.localStorage.get(name)) || null;
     } catch (err) {
+      sd.log(err);
+
     }
     return storedValue;
   },
@@ -1282,6 +1291,8 @@ _.xhr = function(cors) {
         try {
           return new ActiveXObject('Microsoft.XMLHTTP')
         } catch (d) {
+          sd.log(d);
+
         }
       }
     }
@@ -1331,7 +1342,10 @@ _.ajax = function(para) {
        setTimeout(function(){
           g.abort();
         },para.timeout+500);
-     }catch(e2){};
+     }catch(e2){
+      sd.log(e2);
+
+     };
   };
 
   g.onreadystatechange = function() {
@@ -1375,7 +1389,10 @@ _.ajax = function(para) {
       }
 
     }
-  } catch (e) {};
+  } catch (e) {
+    sd.log(e);
+
+  };
 
   g.send(para.data || null);
 
@@ -1417,6 +1434,7 @@ _.ajax = function(para) {
     para.appendCall(g);
 };
 
+
 _.getHostname = function(url, defaultValue) {
   if (!defaultValue || typeof defaultValue !== "string") {
     defaultValue = "hostname解析异常";
@@ -1425,7 +1443,7 @@ _.getHostname = function(url, defaultValue) {
   try {
     hostname = _.URL(url).hostname;
   } catch (e) {
-    // do nothing
+    sd.log('getHostname传入的url参数不合法！');
   }
   return hostname || defaultValue;
 };
@@ -1935,6 +1953,7 @@ _.info = {
   // 预置属性
   properties: function() {
     return {
+      $timezone_offset: (new Date()).getTimezoneOffset(),
       $screen_height: Number(screen.height) || 0,
       $screen_width: Number(screen.width) || 0,
       // 我说两遍写的重复，佳捷说就写两遍
@@ -2033,10 +2052,10 @@ _.autoExeQueue = function(){
   };
 
   _.eventEmitter = function(){
-    this._events = [];  
+    this._events = [];
     this.pendingEvents = [];
   }
-  
+
   _.eventEmitter.prototype = {
      emit: function(type){
         var args =[].slice.call(arguments,1);
@@ -2079,13 +2098,73 @@ _.autoExeQueue = function(){
       _.each(this.pendingEvents, function(val){
         that.emit(val.type, val.data);
       })
-      
+
       this.pendingEvents = [];
 
      }
 
   }
-  
+
+  /**
+   * Obfuscate a plaintext string with a simple rotation algorithm similar to
+   * the rot13 cipher.
+   */
+  _.rot13obfs = function(str, key) {
+    str = String(str);
+    key = typeof key === 'number' ? key : 13;
+    var n = 126;
+
+    var chars = str.split('');
+
+    for (var i = 0, len = chars.length; i < len; i++) {
+      var c = chars[i].charCodeAt(0);
+
+      if (c < n) {
+        chars[i] = String.fromCharCode((chars[i].charCodeAt(0) + key) % n);
+      }
+    }
+
+    return chars.join('');
+  };
+
+  /**
+   * De-obfuscate an obfuscated string with the method above.
+   */
+  _.rot13defs = function(str) {
+    var key = 13, n = 126, str = String(str);
+
+    return _.rot13obfs(str, n - key);
+  };
+
+  _.setCssStyle = function(css) {
+    var style = document.createElement('style');
+    style.type = 'text/css';
+    try {
+      style.appendChild(document.createTextNode(css))
+    } catch(e) {
+      style.styleSheet.cssText = css;
+    }
+    var head = document.getElementsByTagName('head')[0];
+    var firstScript = document.getElementsByTagName('script')[0];
+    if (head) {
+      if (head.children.length) {
+        head.insertBefore(style, head.children[0])
+      } else {
+        head.appendChild(style);
+      }
+    } else {
+      firstScript.parentNode.insertBefore(style, firstScript);
+    }
+  };
+
+  _.isIOS = function() {
+    return !!navigator.userAgent.match(/iPhone|iPad|iPod/i);
+  };
+
+  _.getIOSVersion = function() {
+    var version = navigator.appVersion.match(/OS (\d+)_(\d+)_?(\d+)?/);
+    return Number.parseInt(version[1], 10);
+  };
 
 })();
 
@@ -2147,9 +2226,8 @@ sd的各个方法，包含sdk的一些基本功能
     datasend_timeout: 3000,
     queue_timeout: 300,
     is_track_device_id: false,
-    use_app_track: false,
-    use_app_track_is_send: true,
-    ignore_oom: true
+    ignore_oom: true,
+    app_js_bridge: false
   };
 
 sd.addReferrerHost = function(data) {
@@ -2158,7 +2236,7 @@ sd.addReferrerHost = function(data) {
     if (data.properties.$first_referrer) {
       data.properties.$first_referrer_host = _.getHostname(data.properties.$first_referrer, defaultHost);
     }
-    if (data.type === "track") {
+    if (data.type === "track" || data.type === "track_signup") {
       if ('$referrer' in data.properties) {
         data.properties.$referrer_host = data.properties.$referrer === "" ? "" : _.getHostname(data.properties.$referrer, defaultHost);
       }
@@ -2170,10 +2248,10 @@ sd.addReferrerHost = function(data) {
 };
 
 sd.addPropsHook = function(data) {
-  if (sd.para.preset_properties && sd.para.preset_properties.url && data.type === "track" && typeof data.properties.$url === 'undefined') {
+  if (sd.para.preset_properties && sd.para.preset_properties.url && (data.type === "track" || data.type === "track_signup") && typeof data.properties.$url === 'undefined') {
     data.properties.$url = window.location.href;
   }
-  if (sd.para.preset_properties && sd.para.preset_properties.title && data.type === "track" && typeof data.properties.$title === 'undefined') {
+  if (sd.para.preset_properties && sd.para.preset_properties.title && (data.type === "track" || data.type === "track_signup") && typeof data.properties.$title === 'undefined') {
     data.properties.$title = document.title;
   }
 };
@@ -2187,11 +2265,13 @@ sd.initPara = function(para){
       latestObj['latest_' + latestProp] = sd.para.is_track_latest[latestProp];
     }
   }
-
+  // 预置属性
   sd.para.preset_properties = _.extend({}, sd.para_default.preset_properties, latestObj, sd.para.preset_properties || {});
 
-  var i;
+
+
   // 合并配置
+  var i;
   for (i in sd.para_default) {
     if (sd.para[i] === void 0) {
       sd.para[i] = sd.para_default[i];
@@ -2199,15 +2279,18 @@ sd.initPara = function(para){
   }
   // 修复没有配置协议的问题，自动取当前页面的协议
   if(typeof sd.para.server_url === 'string' && sd.para.server_url.slice(0,3) === '://'){
-    sd.para.server_url = location.protocol + sd.para.server_url;
+    sd.para.server_url = location.protocol.slice(-1) + sd.para.server_url;
   }
   if(typeof sd.para.web_url === 'string' && sd.para.web_url.slice(0,3) === '://'){
-    sd.para.web_url = location.protocol + sd.para.web_url;
+    sd.para.web_url = location.protocol.slice(-1) + sd.para.web_url;
   }
 
   if(sd.para.send_type !== 'image' && sd.para.send_type !== 'ajax' && sd.para.send_type !== 'beacon'){
     sd.para.send_type = 'image';
   }
+  // 初始化打通参数
+  sd.bridge.initPara();
+  sd.bridge.initState();
 
   var batch_send_default = {
     datasend_timeout: 6000,
@@ -2227,7 +2310,6 @@ sd.initPara = function(para){
     sd.para.batch_send = false;
   }
 
-
   var utm_type = ['utm_source','utm_medium','utm_campaign','utm_content','utm_term'];
   var search_type = ['www.baidu.','m.baidu.','m.sm.cn','so.com','sogou.com','youdao.com','google.','yahoo.com/','bing.com/','ask.com/'];
   var social_type = ['weibo.com','renren.com','kaixin001.com','douban.com','qzone.qq.com','zhihu.com','tieba.baidu.com','weixin.qq.com'];
@@ -2239,7 +2321,10 @@ sd.initPara = function(para){
     sd.para.source_type.social = _.isArray(sd.para.source_type.social) ? sd.para.source_type.social.concat(social_type) : social_type;
     sd.para.source_type.keyword = _.isObject(sd.para.source_type.keyword) ?  _.extend(search_keyword,sd.para.source_type.keyword) : search_keyword;
   }
-
+  var collect_tags_default = {
+    div : false
+  };
+  var ignore_tags_default = ['mark','/mark','strong','b','em','i','u','abbr','ins','del','s','sup'];
   if(_.isObject(sd.para.heatmap)) {
     sd.para.heatmap.clickmap = sd.para.heatmap.clickmap || 'default';
     sd.para.heatmap.scroll_notice_map = sd.para.heatmap.scroll_notice_map || 'default';
@@ -2247,6 +2332,26 @@ sd.initPara = function(para){
     sd.para.heatmap.scroll_event_duration = sd.para.heatmap.scroll_event_duration || 18000; // The max value of $event_duration property for $WebStay event, in seconds (5 Hours).
     sd.para.heatmap.renderRefreshTime = sd.para.heatmap.renderRefreshTime || 1000;
     sd.para.heatmap.loadTimeout = sd.para.heatmap.loadTimeout || 1000;
+
+    if(_.isObject(sd.para.heatmap.collect_tags)){
+      if(sd.para.heatmap.collect_tags.div === true){
+        sd.para.heatmap.collect_tags.div = {ignore_tags : ignore_tags_default};
+      }else if(_.isObject(sd.para.heatmap.collect_tags.div)){
+        if(sd.para.heatmap.collect_tags.div.ignore_tags){
+          if(!_.isArray(sd.para.heatmap.collect_tags.div.ignore_tags)){
+            sd.log('ignore_tags 参数必须是数组格式');
+            sd.para.heatmap.collect_tags.div.ignore_tags = ignore_tags_default;
+          }
+        }else{
+          sd.para.heatmap.collect_tags.div.ignore_tags = ignore_tags_default;
+        }
+
+      }else{
+        sd.para.heatmap.collect_tags.div = false;
+      }
+    }else{
+      sd.para.heatmap.collect_tags = collect_tags_default;
+    }
   }
   // 优化配置
   if(typeof sd.para.server_url === 'object' && sd.para.server_url.length){
@@ -2310,7 +2415,7 @@ sd.setPreConfig = function(sa){
 
 sd.setInitVar= function(){
   sd._t = sd._t || 1 * new Date();
-  sd.lib_version = '1.14.23';
+  sd.lib_version = '1.15.15';
   sd.is_first_visitor = false;
   // 标准广告系列来源
   sd.source_channel_standard = 'utm_source utm_medium utm_campaign utm_content utm_term';
@@ -2319,7 +2424,7 @@ sd.setInitVar= function(){
 sd.log = function() {
   if((_.sessionStorage.isSupport() && sessionStorage.getItem('sensorsdata_jssdk_debug') === 'true') || sd.para.show_log){
 
-    if(sd.para.show_log === true || sd.para.show_log === 'string' || sd.para.show_log === false){
+    if(_.isObject(arguments[0]) && (sd.para.show_log === true || sd.para.show_log === 'string' || sd.para.show_log === false)){
       arguments[0] = _.formatJsonString(arguments[0]);
     }
 
@@ -2401,11 +2506,13 @@ sd.debug = {
       '1': name + 'use_app_track为false',
       '2': name + 'Android或者iOS，没有暴露相应方法',
       '3.1': name + 'Android校验server_url失败',
-      '3.2': name + 'iOS校验server_url失败'
+      '3.2': name + 'iOS校验server_url失败',
+      '4.1': name + 'H5 校验 iOS server_url 失败',
+      '4.2': name + 'H5 校验 Android server_url 失败'
     };
     var output = obj.output;
     var step = obj.step;
-    var data = obj.data;
+    var data = obj.data || '';
     // 控制台输出
     if(output === 'all' || output === 'console'){
       sd.log(relation[step]);
@@ -2415,6 +2522,39 @@ sd.debug = {
       if (!data.type || data.type.slice(0, 7) !== 'profile') {
         data.properties._jssdk_debug_info = 'apph5-' + String(step);
       }
+    }
+  },
+  defineMode: function(type){
+    var debugList = {
+      '1': {
+              "title": "当前页面无法进行可视化全埋点",
+              "message": "App SDK 与 Web JS SDK 没有进行打通，请联系贵方技术人员修正 App SDK 的配置，详细信息请查看文档。",
+              "link_text": "配置文档",
+              "link_url": "https://manual.sensorsdata.cn/sa/latest/tech_sdk_client_link-1573913.html"
+            },
+      '2': {
+              "title": "当前页面无法进行可视化全埋点",
+              "message": "App SDK 与 Web JS SDK 没有进行打通，请联系贵方技术人员修正 Web JS SDK 的配置，详细信息请查看文档。",
+              "link_text": "配置文档",
+              "link_url": "https://manual.sensorsdata.cn/sa/latest/tech_sdk_client_link-1573913.html"
+            },
+      '3': {
+              "title": "当前页面无法进行可视化全埋点",
+              "message": "Web JS SDK 没有开启全埋点配置，请联系贵方工作人员修正 SDK 的配置，详细信息请查看文档。",
+              "link_text": "配置文档",
+              "link_url": "https://manual.sensorsdata.cn/sa/latest/tech_sdk_client_web_all-1573964.html"
+            },
+      '4': {
+            "title": "当前页面无法进行可视化全埋点",
+            "message": "Web JS SDK 配置的数据校验地址与 App SDK 配置的数据校验地址不一致，请联系贵方工作人员修正 SDK 的配置，详细信息请查看文档。",
+            "link_text": "配置文档",
+            "link_url": "https://manual.sensorsdata.cn/sa/latest/tech_sdk_client_link-1573913.html"
+           }
+    };
+    if(type && debugList[type]){
+      return debugList[type];
+    }else{
+      return false;
     }
   }
 };
@@ -2617,14 +2757,12 @@ sd.debug = {
           current_page_url = location.href;
         });
       }
-
       sd.track('$pageview', _.extend({
-          $referrer: _.getReferrer(),
-          $url: location.href,
-          $url_path: location.pathname,
-          $title: document.title
-        }, $utms, para),callback
-      );
+        $referrer: _.getReferrer(),
+        $url: location.href,
+        $url_path: location.pathname,
+        $title: document.title
+      }, $utms, para) ,callback);
       this.autoTrackIsUsed=true;
     },
     getAnonymousID:function(){
@@ -2651,6 +2789,12 @@ sd.debug = {
           }
         }
       });
+    },
+    useModulePlugin: function() {
+      sd.use.apply(sd, arguments);
+    },
+    useAppPlugin: function(){
+      this.setPlugin.apply(this, arguments);
     }
     /*,
     pluginIsReady: function(para){
@@ -2660,7 +2804,7 @@ sd.debug = {
       }
       if(sd.pluginTempFunction[para.name]){
         sd.pluginTempFunction[para.name](para.self);
-        delete sd.pluginTempFunction[para.name];        
+        delete sd.pluginTempFunction[para.name];
       }
     }*/
   };
@@ -2676,6 +2820,14 @@ sd.debug = {
       arg0.apply(sd, arg1);
     } else {
       sd.log('quick方法中没有这个功能' + arg[0]);
+    }
+  };
+
+  // 调用 modules 插件的 init 方法
+  sd.use = function(name, option) {
+    if(_.isObject(sd.modules) && _.isObject(sd.modules[name]) && _.isFunction(sd.modules[name].init)){
+      option = option || {};
+      sd.modules[name].init(sd, option);
     }
   };
 
@@ -2757,7 +2909,7 @@ sd.debug = {
         if (_.isString(value)) {
           p[key] = [value];
         } else if (_.isArray(value)) {
-
+          p[key] = value;
         } else {
           delete p[key];
           sd.log('appendProfile属性的值必须是字符串或者数组');
@@ -2843,10 +2995,11 @@ sd.debug = {
     }
     var firstId = store.getFirstId();
     if (typeof id === 'undefined') {
+      var uuid = _.UUID();
       if(firstId){
-        store.set('first_id', _.UUID());
+        store.set('first_id', uuid);
       }else{
-        store.set('distinct_id', _.UUID());
+        store.set('distinct_id', uuid);
       }
     } else if (saEvent.check({distinct_id: id})) {
       if (isSave === true) {
@@ -2980,13 +3133,12 @@ sd.debug = {
     if(firstId){
       store.set('first_id','');
       if(isChangeId === true){
-        store.set('distinct_id',_.UUID());
-        sd.events.tempAdd('logout',_.UUID());
+        var uuid = _.UUID();
+        store.set('distinct_id',uuid);
       }else{
         store.set('distinct_id',firstId);
-        sd.events.tempAdd('logout',firstId);
       }
-      
+
     }else{
       sd.log('没有first_id，logout失败');
     }
@@ -3026,14 +3178,288 @@ sd.debug = {
       _.each(window.SensorsDataWebJSSDKPlugin, function(v,k){
         if((_.isObject(v) || _.isFunction(v)) && _.isFunction(v['setWebSDKReady'])){
           v['setWebSDKReady']();
-        }  
+        }
       });
     }
   };
 */
 
 
+sd.detectMode = function(){
 
+    var heatmapMode = {
+      searchKeywordMatch:location.search.match(/sa-request-id=([^&#]+)/),
+      isSeachHasKeyword: function(){
+        var match = this.searchKeywordMatch;
+        return (match && match[0] && match[1]);
+      },
+      hasKeywordHandle: function(){
+        var match = this.searchKeywordMatch;
+        var type = location.search.match(/sa-request-type=([^&#]+)/);
+        var web_url = location.search.match(/sa-request-url=([^&#]+)/);
+        heatmap.setNotice(web_url);
+        if(_.sessionStorage.isSupport()){
+          if(web_url && web_url[0] && web_url[1]){
+            sessionStorage.setItem('sensors_heatmap_url',decodeURIComponent(web_url[1]));
+          }
+          sessionStorage.setItem('sensors_heatmap_id',match[1]);
+            if(type && type[0] && type[1]){
+              if(type[1] === '1' || type[1] === '2' || type[1] === '3'){
+                  type = type[1];
+                  sessionStorage.setItem('sensors_heatmap_type',type);
+              }else{
+                  type = null;
+              }
+            }else{
+                if(sessionStorage.getItem('sensors_heatmap_type') !== null){
+                  type = sessionStorage.getItem('sensors_heatmap_type');
+                }else{
+                  type = null;
+                }
+            }
+        }
+        this.isReady(match[1],type);
+      },
+      isReady: function (data,type,url){
+        if(sd.para.heatmap_url){
+          _.loadScript({
+             success:function(){
+                 setTimeout(function(){
+                    if(typeof sa_jssdk_heatmap_render !== 'undefined'){
+                     sa_jssdk_heatmap_render(sd,data,type,url);
+                      if (typeof console === 'object' && typeof console.log === 'function') {
+                        if (!(sd.heatmap_version && (sd.heatmap_version === sd.lib_version))) {
+                          console.log('heatmap.js与sensorsdata.js版本号不一致，可能存在风险!');
+                        }
+                      }
+                    }
+                 },0);
+             },
+             error:function(){},
+             type:'js',
+             url: sd.para.heatmap_url
+         });
+       }else{
+         sd.log('没有指定heatmap_url的路径');
+       }
+      },
+      isStoregeHasKeyword:function(){
+        return (_.sessionStorage.isSupport() && typeof sessionStorage.getItem('sensors_heatmap_id') === 'string');
+      },
+      storageHasKeywordHandle:function(){
+        heatmap.setNotice();
+        heatmapMode.isReady(sessionStorage.getItem('sensors_heatmap_id'),sessionStorage.getItem('sensors_heatmap_type'),location.href);
+      }
+    };
+
+    var vtrackMode = {
+      isVtrackMode: false,
+      loadVtrack: function() {
+        _.loadScript({
+          success: function() {
+          },
+          error: function(){},
+          type: 'js',
+          url: location.protocol + '//static.sensorsdata.cn/sdk/'+ sd.lib_version + '/vtrack.min.js'
+        });
+      },
+      messageListener: function(event) {
+        if (event.data.source !== 'sa-fe') {
+          return false;
+        }
+        if (event.data.type === 'v-track-mode') {
+          if (event.data.data && event.data.data.isVtrack) {
+            vtrackMode.isVtrackMode = true;
+            vtrackMode.loadVtrack();
+          }
+          window.removeEventListener("message", vtrackMode.messageListener, false);
+        }
+      },
+      removeMessageHandle: function(){
+        if (window.removeEventListener) {
+          window.removeEventListener("message", vtrackMode.messageListener, false);
+        }
+      },
+      verifyVtrackMode: function(){
+        if (window.addEventListener) {
+          window.addEventListener("message", vtrackMode.messageListener, false);
+        }
+        if (window.parent && window.parent.postMessage) {
+          window.parent.postMessage({
+            source: 'sa-web-sdk',
+            type: 'v-is-vtrack',
+            data: {}
+          }, '*');
+        }
+      }
+    };
+
+    var defineMode = function(isLoaded){
+      var bridgeObj = sd.bridge.initDefineBridgeInfo();
+      function getAndPostDebugInfo(){
+          var arr = [];
+          if(!bridgeObj.touch_app_bridge){
+            //App 没有开启打通
+            arr.push(sd.debug.defineMode('1'));
+          }
+          if(!(_.isObject(sd.para.app_js_bridge))){
+            //H5 没有开启打通
+            arr.push(sd.debug.defineMode('2'));
+            bridgeObj.verify_success = false;
+          }
+          if(!(_.isObject(sd.para.heatmap) && sd.para.heatmap.clickmap == 'default')){
+            //H5 没有开启全埋点
+            arr.push(sd.debug.defineMode('3'));
+          }
+          if(bridgeObj.verify_success === 'fail'){
+            //校验失败
+            arr.push(sd.debug.defineMode('4'));
+          }
+          var data = {
+            callType: 'app_alert',
+            data: arr
+          };
+
+          if(SensorsData_App_Visual_Bridge && SensorsData_App_Visual_Bridge.sensorsdata_visualized_alert_info){
+            SensorsData_App_Visual_Bridge.sensorsdata_visualized_alert_info(JSON.stringify(data));
+          }else if(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.sensorsdataNativeTracker && window.webkit.messageHandlers.sensorsdataNativeTracker.postMessage){
+            window.webkit.messageHandlers.sensorsdataNativeTracker.postMessage(JSON.stringify(data));
+          }
+
+      }
+
+      if(_.isObject(window.SensorsData_App_Visual_Bridge) && window.SensorsData_App_Visual_Bridge.sensorsdata_visualized_mode && ((window.SensorsData_App_Visual_Bridge.sensorsdata_visualized_mode === true) || (window.SensorsData_App_Visual_Bridge.sensorsdata_visualized_mode()))){
+        if(_.isObject(sd.para.heatmap) && sd.para.heatmap.clickmap == 'default'){
+          if(_.isObject(sd.para.app_js_bridge) && bridgeObj.verify_success === 'success'){
+            if(!isLoaded){
+              var protocol = location.protocol;
+              var protocolArr = ['http:','https:'];
+              protocol = _.indexOf(protocolArr,protocol) > -1 ?protocol:'https:';
+              _.loadScript({
+                success:function(){
+                    setTimeout(function(){
+                      if(typeof sa_jssdk_app_define_mode !== 'undefined'){
+                        sa_jssdk_app_define_mode(sd,isLoaded);
+                      }
+                    },0);
+                },
+                error:function(){},
+                type:'js',
+                url: protocol + '//static.sensorsdata.cn/sdk/'+ sd.lib_version + '/vapph5define.min.js'
+              });
+            }else{
+              sa_jssdk_app_define_mode(sd,isLoaded);
+            }
+
+          }else{
+            //打通失败弹框debug信息传给App
+            getAndPostDebugInfo();
+          }
+        }else{
+          //未开启全埋点弹框
+          getAndPostDebugInfo();
+        }
+
+
+      }
+
+    };
+
+
+    function trackMode(){
+
+      sd.readyState.setState(3);
+      window.sensorsdata_app_call_js = function(type){
+        if(type && type == 'visualized'){
+          if(typeof sa_jssdk_app_define_mode !== 'undefined'){
+            defineMode(true);
+          }else{
+              defineMode(false);
+          }
+        }
+      };
+
+      defineMode(false);
+
+
+      sd.bridge.app_js_bridge_v1();
+      // 初始化referrer等页面属性 1.6
+      _.info.initPage();
+
+      if(sd.para.is_track_single_page){
+        _.addSinglePageEvent(function (last_url) {
+          var sendData = function(extraData) {
+            extraData = extraData || {};
+            if (last_url !== location.href) {
+              _.info.pageProp.referrer = last_url;
+              sd.quick("autoTrack", _.extend({$url: location.href, $referrer: last_url}, extraData));
+            }
+          };
+          if (typeof sd.para.is_track_single_page === "boolean") {
+            sendData();
+          } else if (typeof sd.para.is_track_single_page === "function") {
+            var returnValue = sd.para.is_track_single_page();
+            if (_.isObject(returnValue)) {
+              sendData(returnValue);
+            } else if (returnValue === true) {
+              sendData();
+            }
+          }
+        });
+      }
+      // 支持localstorage且开启了batch_send
+      if (sd.para.batch_send) {
+        sd.batchSend.batchInterval();
+      }
+      // 初始化distinct_id
+      sd.store.init();
+
+      sd.readyState.setState(4);
+  //    sd.noticePluginIsReady();
+      // 发送数据
+      if(sd._q && _.isArray(sd._q) && sd._q.length > 0 ){
+        _.each(sd._q, function(content) {
+          sd[content[0]].apply(sd, Array.prototype.slice.call(content[1]));
+        });
+      }
+
+
+
+      //进入热力图采集模式
+      if (_.isObject(sd.para.heatmap)) {
+        heatmap.initHeatmap();
+        heatmap.initScrollmap();
+      }
+    }
+
+
+
+    // 通过检查参数，判断是否是点击图模式
+    if(heatmapMode.isSeachHasKeyword()){
+      heatmapMode.hasKeywordHandle();
+      // 通过检查iframe
+    }else if (window.parent !== self) {
+      vtrackMode.verifyVtrackMode();
+      // 如果1秒后没有收到有效的回复说是vtrack模式，就进入新的判断
+      setTimeout(function() {
+        if (vtrackMode.isVtrackMode) {
+          return false;
+        }
+        //删除监听
+        vtrackMode.removeMessageHandle();
+        //判断是否处于点击图的storage模式
+        if(heatmapMode.isStoregeHasKeyword()){
+          heatmapMode.storageHasKeywordHandle();
+        }else{
+          trackMode();
+        }
+      }, 1000);
+    }else{
+      trackMode();
+    }
+
+
+};
 
 
 
@@ -3386,94 +3812,14 @@ sendState.getSendCall = function(data, config, callback) {
   
   sd.events.tempAdd('send',originData);
 
-  if(!sd.para.use_app_track && sd.para.batch_send && localStorage.length < 200){
+  if(!sd.para.app_js_bridge && sd.para.batch_send && localStorage.length < 200){
     sd.log(originData);
     sd.batchSend.add(this.requestData.data);
     return false;
   }
 
-  // 打通app传数据给app
-  if(sd.para.use_app_track === true || sd.para.use_app_track === 'only'){
-    if((typeof SensorsData_APP_JS_Bridge === 'object') && (SensorsData_APP_JS_Bridge.sensorsdata_verify || SensorsData_APP_JS_Bridge.sensorsdata_track)){
-      // 如果有新版方式，优先用新版
-      if(SensorsData_APP_JS_Bridge.sensorsdata_verify){
-        // 如果校验通过则结束，不通过则降级改成h5继续发送
-        if(!SensorsData_APP_JS_Bridge.sensorsdata_verify(JSON.stringify(_.extend({server_url:sd.para.server_url},originData)))){
-          if (sd.para.use_app_track_is_send) {
-            sd.debug.apph5({
-              data: originData,
-              step: '3.1',
-              output:'all'
-            });
-            this.prepareServerUrl();
-          }
-        }else{
-          (typeof callback === 'function') && callback();
-        }
-      }else{
-        SensorsData_APP_JS_Bridge.sensorsdata_track(JSON.stringify(_.extend({server_url:sd.para.server_url},originData)));
-        (typeof callback === 'function') && callback();
-      }
-    }else if((/sensors-verify/.test(navigator.userAgent) || /sa-sdk-ios/.test(navigator.userAgent)) && !window.MSStream){
-      var iframe = null;
-      if(/sensors-verify/.test(navigator.userAgent)){
-        var match = navigator.userAgent.match(/sensors-verify\/([^\s]+)/);
-        if(match && match[0] && (typeof match[1] === 'string') && (match[1].split('?').length === 2)){
-          match = match[1].split('?');
-          var hostname = null;
-          var project = null;
-          try{
-            hostname = _.URL(sd.para.server_url).hostname;
-            project = _.URL(sd.para.server_url).searchParams.get('project') || 'default';
-          }catch(e){};
-          if (hostname && hostname === match[0] && project && project === match[1]) {
-            iframe = document.createElement('iframe');
-            iframe.setAttribute('src', 'sensorsanalytics://trackEvent?event=' + encodeURIComponent(JSON.stringify(_.extend({server_url:sd.para.server_url},originData))));
-            document.documentElement.appendChild(iframe);
-            iframe.parentNode.removeChild(iframe);
-            iframe = null;
-            (typeof callback === 'function') && callback();
-          } else {
-            if (sd.para.use_app_track_is_send) {
-              sd.debug.apph5({
-                data: originData,
-                step: '3.2',
-                output:'all'
-              });
-              this.prepareServerUrl();
-            }
-          }
-        }
-      }else{
-        iframe = document.createElement('iframe');
-        iframe.setAttribute('src', 'sensorsanalytics://trackEvent?event=' + encodeURIComponent(JSON.stringify(_.extend({server_url:sd.para.server_url},originData))));
-        document.documentElement.appendChild(iframe);
-        iframe.parentNode.removeChild(iframe);
-        iframe = null;
-        (typeof callback === 'function') && callback();
-      }
-    }else{
-      if(sd.para.use_app_track === true && sd.para.use_app_track_is_send === true){
-        sd.debug.apph5({
-          data: originData,
-          step: '2',
-          output:'all'
-        });
-        this.prepareServerUrl();
-      }
-    }
-  }else if(sd.para.use_app_track === 'mui'){
-    if(_.isObject(window.plus) && window.plus.SDAnalytics && window.plus.SDAnalytics.trackH5Event){
-      window.plus.SDAnalytics.trackH5Event(data);
-    }
-  } else{
-    sd.debug.apph5({
-      data: originData,
-      step: '1',
-      output:'code'
-    });
-    this.prepareServerUrl();
-  }
+  sd.bridge.dataSend(originData,this,callback);
+
   sd.log(originData);
 };
 
@@ -3485,7 +3831,9 @@ sendState.prepareServerUrl = function(){
       this.sendCall(sd.para.server_url[i]);
     }
   }else{
-    this.sendCall(sd.para.server_url,this.requestData.callback);
+    if (sd.para.server_url) {
+      this.sendCall(sd.para.server_url,this.requestData.callback);
+    }
   }
 };
 
@@ -3516,6 +3864,7 @@ sendState.pushSend = function(data){
 
 
 var saEvent = {};
+sd.saEvent = saEvent;
 
 saEvent.checkOption = {
   // event和property里的key要是一个合法的变量名，由大小写字母、数字、下划线和$组成，并且首字符不能是数字。
@@ -3803,6 +4152,9 @@ cookie的数据存储
       },
       set: function(name, value) {
         this._state = this._state || {};
+        if(name === 'distinct_id' && this._state.distinct_id){
+          sd.events.tempAdd('changeDistinctId',value);
+        }
         this._state[name] = value;
         // 如果set('first_id') 或者 set('distinct_id')，删除对应的临时属性
         if (name === 'first_id') {
@@ -3811,6 +4163,7 @@ cookie的数据存储
           delete this._state._distinct_id;
         }
         this.save();
+        
       },
       // 针对当前页面修改
       change: function(name, value) {
@@ -3882,7 +4235,7 @@ cookie的数据存储
         try {
           sub = _.URL(location.href).hostname;
         } catch (e) {
-          // do nothing.
+          sd.log(e);
         }
         if(typeof sub === 'string' && sub !== ''){
           sub = 'sa_jssdk_2015_' + sub.replace(/\./g, '_');
@@ -4092,6 +4445,321 @@ var saNewUser = {
 };
 
 
+sd.bridge = {
+  //H5 校验 server_url（project host）是否通过
+  is_verify_success: false,
+  initPara: function(){
+    var app_js_bridge_default = {
+      //is_send:打通失败数据是否由 H5 发送
+      is_send: true,
+      white_list: [],
+      is_mui:false
+    };
+    if(typeof sd.para.app_js_bridge === 'object'){
+      sd.para.app_js_bridge = _.extend({},app_js_bridge_default,sd.para.app_js_bridge);
+    }else if(sd.para.use_app_track === true || sd.para.app_js_bridge === true || sd.para.use_app_track === 'only'){
+      if (sd.para.use_app_track_is_send === false || sd.para.use_app_track === 'only') {
+        app_js_bridge_default.is_send = false;
+      }
+      sd.para.app_js_bridge = _.extend({},app_js_bridge_default);
+    }else if(sd.para.use_app_track === 'mui'){
+      app_js_bridge_default.is_mui = true;
+      sd.para.app_js_bridge = _.extend({},app_js_bridge_default);
+    }    
+    if(sd.para.app_js_bridge.is_send === false){
+      sd.log('设置了 is_send:false,如果打通失败，数据将被丢弃！');
+    }
+  },
+  //初始化是否打通
+  initState:function(){
+    function checkProjectAndHost(appUrl){
+      function getHostNameAndProject(url){
+        var obj = {
+          hostname:'',
+          project:''
+        };
+        try{
+          obj.hostname = _.URL(url).hostname;
+          obj.project = _.URL(url).searchParams.get('project') || 'default';
+        }catch(e){
+          sd.log(e);
+        }
+        return obj;
+      }
+      var appObj = getHostNameAndProject(appUrl);
+      var H5Obj = getHostNameAndProject(sd.para.server_url);
+      if(appObj.hostname === H5Obj.hostname && appObj.project === H5Obj.project){
+         return true;
+      }else{
+        if(sd.para.app_js_bridge.white_list.length > 0){
+          for(var i=0;i<sd.para.app_js_bridge.white_list.length;i++){
+            var urlobj = getHostNameAndProject(sd.para.app_js_bridge.white_list[i]);
+            if(urlobj.hostname === appObj.hostname && urlobj.project === appObj.project){
+              return true;
+            }
+          }
+        }
+      }
+      return false;
+    }
+
+    if(_.isObject(sd.para.app_js_bridge) && !sd.para.app_js_bridge.is_mui){
+      if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.sensorsdataNativeTracker && _.isObject(window.SensorsData_iOS_JS_Bridge) && window.SensorsData_iOS_JS_Bridge.sensorsdata_app_server_url) {
+          if(checkProjectAndHost(window.SensorsData_iOS_JS_Bridge.sensorsdata_app_server_url)){
+            sd.bridge.is_verify_success = true;
+          }
+         
+      }else if(_.isObject(window.SensorsData_APP_New_H5_Bridge) && window.SensorsData_APP_New_H5_Bridge.sensorsdata_get_server_url && window.SensorsData_APP_New_H5_Bridge.sensorsdata_track){
+        var app_server_url = window.SensorsData_APP_New_H5_Bridge.sensorsdata_get_server_url();
+        if(app_server_url){
+          if(checkProjectAndHost(app_server_url)){
+            sd.bridge.is_verify_success = true;
+          }
+        }
+     
+      }
+    }
+  },
+  initDefineBridgeInfo:function(){
+    var resultObj = {
+      touch_app_bridge: true,
+      verify_success: false
+    };
+    
+    if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.sensorsdataNativeTracker && window.webkit.messageHandlers.sensorsdataNativeTracker.postMessage && _.isObject(window.SensorsData_iOS_JS_Bridge) && window.SensorsData_iOS_JS_Bridge.sensorsdata_app_server_url) {
+      if (sd.bridge.is_verify_success) {
+        resultObj.verify_success = 'success';
+      }else{
+        resultObj.verify_success = 'fail';
+      }
+    } else if (_.isObject(window.SensorsData_APP_New_H5_Bridge) && window.SensorsData_APP_New_H5_Bridge.sensorsdata_get_server_url && window.SensorsData_APP_New_H5_Bridge.sensorsdata_track) {
+      if (sd.bridge.is_verify_success) {
+        resultObj.verify_success = 'success';
+      }else{
+        resultObj.verify_success = 'fail';
+      }
+    } else if ((typeof SensorsData_APP_JS_Bridge === 'object') && ((SensorsData_APP_JS_Bridge.sensorsdata_verify && SensorsData_APP_JS_Bridge.sensorsdata_visual_verify)|| SensorsData_APP_JS_Bridge.sensorsdata_track)) {
+      if (SensorsData_APP_JS_Bridge.sensorsdata_verify && SensorsData_APP_JS_Bridge.sensorsdata_visual_verify) {
+        if (SensorsData_APP_JS_Bridge.sensorsdata_visual_verify(JSON.stringify({server_url: sd.para.server_url}))){
+          resultObj.verify_success = 'success';
+        }else{
+          resultObj.verify_success = 'fail';
+        }
+      } else {
+        resultObj.verify_success = 'success';
+      }
+    } else if ((/sensors-verify/.test(navigator.userAgent) || /sa-sdk-ios/.test(navigator.userAgent)) && !window.MSStream) {
+      if (sd.bridge.iOS_UA_bridge()) {
+        resultObj.verify_success = 'success';
+      }else{
+        resultObj.verify_success = 'fail';
+      }
+    }else{
+      resultObj.touch_app_bridge = false;
+    }
+
+    return resultObj;
+  },
+  iOS_UA_bridge: function(){
+    if (/sensors-verify/.test(navigator.userAgent)) {
+      var match = navigator.userAgent.match(/sensors-verify\/([^\s]+)/);
+      if (match && match[0] && (typeof match[1] === 'string') && (match[1].split('?').length === 2)) {
+        match = match[1].split('?');
+        var hostname = null;
+        var project = null;
+        try {
+          hostname = _.URL(sd.para.server_url).hostname;
+          project = _.URL(sd.para.server_url).searchParams.get('project') || 'default';
+        } catch (e) {
+          sd.log(e);
+        }
+        if (hostname && hostname === match[0] && project && project === match[1]) {
+           return true;
+        } else {
+           return false;
+        }
+      }else{
+        return false;
+      }
+    } else if(/sa-sdk-ios/.test(navigator.userAgent)){
+      return true;
+    }else{
+      return false;
+    }
+  },
+  dataSend:function(originData,that,callback){
+      // 打通app传数据给app
+    if(_.isObject(sd.para.app_js_bridge) && !sd.para.app_js_bridge.is_mui){
+      //如果有新版，优先用新版
+      if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.sensorsdataNativeTracker && window.webkit.messageHandlers.sensorsdataNativeTracker.postMessage && _.isObject(window.SensorsData_iOS_JS_Bridge) && window.SensorsData_iOS_JS_Bridge.sensorsdata_app_server_url) {
+        if(sd.bridge.is_verify_success){
+          window.webkit.messageHandlers.sensorsdataNativeTracker.postMessage(JSON.stringify({callType:'app_h5_track', data: _.extend({server_url:sd.para.server_url}, originData)}));
+          (typeof callback === 'function') && callback();
+        }else{
+          if(sd.para.app_js_bridge.is_send){
+            sd.debug.apph5({
+              data: originData,
+              step: '4.1',
+              output:'all'
+            });
+            that.prepareServerUrl();
+          }else{
+            (typeof callback === 'function') && callback();
+          }       
+        }
+      }else if(_.isObject(window.SensorsData_APP_New_H5_Bridge) && window.SensorsData_APP_New_H5_Bridge.sensorsdata_get_server_url && window.SensorsData_APP_New_H5_Bridge.sensorsdata_track){
+        if(sd.bridge.is_verify_success){
+          SensorsData_APP_New_H5_Bridge.sensorsdata_track(JSON.stringify(_.extend({server_url:sd.para.server_url},originData)));
+          (typeof callback === 'function') && callback();
+        }else{
+          if(sd.para.app_js_bridge.is_send){
+            sd.debug.apph5({
+              data: originData,
+              step: '4.2',
+              output:'all'
+            });
+            that.prepareServerUrl();
+          }else{
+            (typeof callback === 'function') && callback();
+          }
+   
+        }   
+      }else if((typeof SensorsData_APP_JS_Bridge === 'object') && (SensorsData_APP_JS_Bridge.sensorsdata_verify || SensorsData_APP_JS_Bridge.sensorsdata_track)){
+        // 如果有新版方式，优先用新版
+        if(SensorsData_APP_JS_Bridge.sensorsdata_verify){
+          // 如果校验通过则结束，不通过则降级改成h5继续发送
+          if(!SensorsData_APP_JS_Bridge.sensorsdata_verify(JSON.stringify(_.extend({server_url:sd.para.server_url},originData)))){
+            if (sd.para.app_js_bridge.is_send) {
+              sd.debug.apph5({
+                data: originData,
+                step: '3.1',
+                output:'all'
+              });
+              that.prepareServerUrl();
+            }else{
+              (typeof callback === 'function') && callback();
+            }
+          }else{
+            (typeof callback === 'function') && callback();
+          }
+        }else{
+          SensorsData_APP_JS_Bridge.sensorsdata_track(JSON.stringify(_.extend({server_url:sd.para.server_url},originData)));
+          (typeof callback === 'function') && callback();
+        }
+      }else if((/sensors-verify/.test(navigator.userAgent) || /sa-sdk-ios/.test(navigator.userAgent)) && !window.MSStream){
+        var iframe = null;
+        if(sd.bridge.iOS_UA_bridge()){
+          iframe = document.createElement('iframe');
+          iframe.setAttribute('src', 'sensorsanalytics://trackEvent?event=' + encodeURIComponent(JSON.stringify(_.extend({
+            server_url: sd.para.server_url
+          }, originData))));
+          document.documentElement.appendChild(iframe);
+          iframe.parentNode.removeChild(iframe);
+          iframe = null;
+          (typeof callback === 'function') && callback();
+        }else{
+          if (sd.para.app_js_bridge.is_send) {
+            sd.debug.apph5({
+              data: originData,
+              step: '3.2',
+              output: 'all'
+            });
+            that.prepareServerUrl();
+          }else{
+            (typeof callback === 'function') && callback();
+          }
+        }
+      }else{
+        if(_.isObject(sd.para.app_js_bridge) && sd.para.app_js_bridge.is_send === true){
+          sd.debug.apph5({
+            data: originData,
+            step: '2',
+            output:'all'
+          });
+          that.prepareServerUrl();
+        }else{
+          (typeof callback === 'function') && callback();
+        }
+      }
+    }else if(_.isObject(sd.para.app_js_bridge) && sd.para.app_js_bridge.is_mui){
+      if(_.isObject(window.plus) && window.plus.SDAnalytics && window.plus.SDAnalytics.trackH5Event){
+        window.plus.SDAnalytics.trackH5Event(data);
+        (typeof callback === 'function') && callback();
+      }else{
+        if(_.isObject(sd.para.app_js_bridge) && sd.para.app_js_bridge.is_send === true){
+          that.prepareServerUrl();
+        }else{
+          (typeof callback === 'function') && callback(); 
+        }
+      }
+    } else{
+      sd.debug.apph5({
+        data: originData,
+        step: '1',
+        output:'code'
+      });
+      that.prepareServerUrl();
+    }
+
+  },
+  app_js_bridge_v1: function(){
+    var app_info = null;
+    var todo = null;
+    function setAppInfo(data){
+      app_info = data;
+      if(_.isJSONString(app_info)){
+        app_info = JSON.parse(app_info);
+      }
+      if(todo){
+        todo(app_info);
+        todo = null;
+        app_info = null;
+      }
+    }
+    //android
+    function getAndroid(){
+      if(typeof window.SensorsData_APP_JS_Bridge === 'object' && window.SensorsData_APP_JS_Bridge.sensorsdata_call_app){
+        app_info = SensorsData_APP_JS_Bridge.sensorsdata_call_app();
+        if(_.isJSONString(app_info)){
+          app_info = JSON.parse(app_info);
+        }
+      }
+    }
+    //ios
+    window.sensorsdata_app_js_bridge_call_js = function(data){
+      setAppInfo(data);
+    };
+    // 通知iOS
+    function calliOS() {
+      if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) {
+        var iframe = document.createElement("iframe");
+        iframe.setAttribute("src", "sensorsanalytics://getAppInfo");
+        document.documentElement.appendChild(iframe);
+        iframe.parentNode.removeChild(iframe);
+        iframe = null;
+      }
+    }
+    sd.getAppStatus = function(func){
+      calliOS();
+      //先获取能直接取到的安卓，ios是异步的不需要操作
+      getAndroid();
+      // 不传参数，直接返回数据
+      if(!func){
+        return app_info;
+        app_info = null;
+      }else{
+        //如果传参数，保存参数。如果有数据直接执行，没数据时保存
+        if(app_info === null){
+          todo = func;
+        }else{
+          func(app_info);
+          app_info = null;
+        }
+      }
+    };
+  }
+};
+
 /*
 点击图和触达图数据采集的功能
 */
@@ -4105,14 +4773,13 @@ var saNewUser = {
         sd.errorMsg = '您SDK没有配置开启点击图，可能没有数据！';
       }
       if(web_url && web_url[0] && web_url[1]){
-        if(web_url[1].slice(0,5) === 'http:' && location.protocol === 'https'){
+        if(web_url[1].slice(0,5) === 'http:' && location.protocol === 'https:'){
           sd.errorMsg = '您的当前页面是https的地址，神策分析环境也必须是https！';
         }
       }
       if(!sd.para.heatmap_url){
         sd.para.heatmap_url = location.protocol + '//static.sensorsdata.cn/sdk/'+ sd.lib_version + '/heatmap.min.js';
       }
-
     },
     getDomIndex: function (el) {
       if (!el.parentNode) return -1;
@@ -4223,7 +4890,61 @@ var saNewUser = {
     }
     return false;
   },
-
+  isStyleTag:function(tagname, isVisualMode){
+    var defaultTag = ['a','div','input','button','textarea'];
+    var ignore_tags_default = ['mark','/mark','strong','b','em','i','u','abbr','ins','del','s','sup'];
+    if(_.indexOf(defaultTag,tagname)>-1){
+      return false;
+    }
+    if (isVisualMode && (!sd.para.heatmap || !sd.para.heatmap.collect_tags || !sd.para.heatmap.collect_tags.div)) {
+      return _.indexOf(ignore_tags_default, tagname) > -1;
+    } else if(_.isObject(sd.para.heatmap) && _.isObject(sd.para.heatmap.collect_tags) && _.isObject(sd.para.heatmap.collect_tags.div) && _.indexOf(sd.para.heatmap.collect_tags.div.ignore_tags,tagname) > -1){
+      return true;
+    }
+    return false;
+  },
+  isCollectableDiv: function(target, isVisualMode){
+    try {
+      if(target.children.length === 0){
+        return true;
+      }else{
+          for(var i = 0;i<target.children.length;i++){
+            if(target.children[i].nodeType !== 1){
+              continue;
+            }
+            var tag = target.children[i].tagName.toLowerCase();
+            if(this.isStyleTag(tag, isVisualMode)){
+                if (!this.isCollectableDiv(target.children[i], isVisualMode)) {
+                    return false;
+                }
+            }else{
+                return false;
+            }
+          }
+          return true;
+      }
+    } catch (error) {
+      sd.log(error);
+    }
+    return false;
+  },
+  getCollectableParent:function(target, isVisualMode){
+    try {
+      var parent = target.parentNode;
+      var parentName = parent?parent.tagName.toLowerCase():'';
+      if(parentName === 'body'){
+          return false;
+      }
+      if(parentName && parentName === 'div' && this.isCollectableDiv(parent, isVisualMode)){
+          return parent;
+      }else if(parent && this.isStyleTag(parentName, isVisualMode)){
+          return this.getCollectableParent(parent, isVisualMode);
+      }
+    } catch (error) {
+      sd.log(error);
+    }
+    return false;
+  },
   initScrollmap: function(){
     if (!_.isObject(sd.para.heatmap) || sd.para.heatmap.scroll_notice_map !== 'default') {
       return false;
@@ -4286,7 +5007,7 @@ var saNewUser = {
           para.$url = location.href;
           para.$title = document.title;
           para.$url_path = location.pathname;
-          para.$event_duration = Math.min(sd.para.heatmap.scroll_event_duration, parseInt(delay_time)/1000);
+          para.event_duration = Math.min(sd.para.heatmap.scroll_event_duration, parseInt(delay_time)/1000);
           sd.track('$WebStay',para);
         }
         this.current_time = current_time;
@@ -4379,94 +5100,30 @@ var saNewUser = {
         }
 
         var parent_ele = target.parentNode;
-
+        var hasA = that.hasElement(e);
         if(tagName === 'a' || tagName === 'button' || tagName === 'input' || tagName === 'textarea' || _.hasAttribute(target, 'data-sensors-click')){
           that.start(ev, target, tagName);
         }else if(parent_ele.tagName.toLowerCase() === 'button' || parent_ele.tagName.toLowerCase() === 'a'){
           that.start(ev, parent_ele, target.parentNode.tagName.toLowerCase());
         }else if(tagName === 'area' && parent_ele.tagName.toLowerCase() === 'map' && _.ry(parent_ele).prev().tagName && _.ry(parent_ele).prev().tagName.toLowerCase() === 'img'){
           that.start(ev, _.ry(parent_ele).prev(), _.ry(parent_ele).prev().tagName.toLowerCase());
-        }else{
-          var hasA = that.hasElement(e);
-          if(hasA){
-            that.start(ev, hasA, hasA.tagName.toLowerCase());
+        }else if(hasA){
+          that.start(ev, hasA, hasA.tagName.toLowerCase());
+        }else if(tagName === 'div' && sd.para.heatmap.collect_tags.div && that.isCollectableDiv(target)){
+          that.start(ev,target,tagName);
+        }else if(that.isStyleTag(tagName)){
+          if(sd.para.heatmap.collect_tags.div){
+            var divTarget = that.getCollectableParent(target);
+            if(divTarget){
+              that.start(ev,divTarget,'div');
+            }
           }
         }
       });
     }
 
-  },
-  prepare:function(todo){
-    var match = location.search.match(/sa-request-id=([^&#]+)/);
-    var type = location.search.match(/sa-request-type=([^&#]+)/);
-    var web_url = location.search.match(/sa-request-url=([^&#]+)/);
-
-    var me = this;
-    function isReady(data,type,url){
-      if(sd.para.heatmap_url){
-        _.loadScript({
-           success:function(){
-               setTimeout(function(){
-                  if(typeof sa_jssdk_heatmap_render !== 'undefined'){
-                   sa_jssdk_heatmap_render(sd,data,type,url);
-                    if (typeof console === 'object' && typeof console.log === 'function') {
-                      if (!(sd.heatmap_version && (sd.heatmap_version === sd.lib_version))) {
-                        console.log('heatmap.js与sensorsdata.js版本号不一致，可能存在风险!');
-                      }
-                    }
-                  }
-               },0);
-           },
-           error:function(){},
-           type:'js',
-           url: sd.para.heatmap_url
-       });
-     }else{
-       sd.log('没有指定heatmap_url的路径');
-     }
-
-    }
-    // 如果有id，才有可能是首次，首次的时候把web_url存进去
-    if(match && match[0] && match[1]){
-      heatmap.setNotice(web_url);
-      if(_.sessionStorage.isSupport()){
-        if(web_url && web_url[0] && web_url[1]){
-          sessionStorage.setItem('sensors_heatmap_url',decodeURIComponent(web_url[1]));
-        }
-        sessionStorage.setItem('sensors_heatmap_id',match[1]);
-
-          if(type && type[0] && type[1]){
-            if(type[1] === '1' || type[1] === '2' || type[1] === '3'){
-                type = type[1];
-                sessionStorage.setItem('sensors_heatmap_type',type);
-            }else{
-                type = null;
-            }
-          }else{
-              if(sessionStorage.getItem('sensors_heatmap_type') !== null){
-                type = sessionStorage.getItem('sensors_heatmap_type');
-              }else{
-                type = null;
-              }
-          }
-      }
-      isReady(match[1],type);
-    } else if(_.sessionStorage.isSupport() && typeof sessionStorage.getItem('sensors_heatmap_id') === 'string'){
-      heatmap.setNotice();
-      isReady(sessionStorage.getItem('sensors_heatmap_id'),sessionStorage.getItem('sensors_heatmap_type'),location.href);
-    }else{
-      todo();
-      //进入热力图采集模式
-      if (_.isObject(sd.para.heatmap)) {
-        this.initHeatmap();
-        this.initScrollmap();
-      }
-    }
-
-
-
-    }
-  };
+  }
+};
 
 
 
@@ -4480,107 +5137,12 @@ sd.init = function(para){
   sd.readyState.setState(2);
   sd.initPara(para);
 
-  function app_js_bridge(){
-    var app_info = null;
-    var todo = null;
-    function setAppInfo(data){
-      app_info = data;
-      if(_.isJSONString(app_info)){
-        app_info = JSON.parse(app_info);
-      }
-      if(todo){
-        todo(app_info);
-        todo = null;
-        app_info = null;
-      }
-    }
-    //android
-    function getAndroid(){
-      if(typeof window.SensorsData_APP_JS_Bridge === 'object' && window.SensorsData_APP_JS_Bridge.sensorsdata_call_app){
-        app_info = SensorsData_APP_JS_Bridge.sensorsdata_call_app();
-        if(_.isJSONString(app_info)){
-          app_info = JSON.parse(app_info);
-        }
-      }
-    }
-    //ios
-    window.sensorsdata_app_js_bridge_call_js = function(data){
-      setAppInfo(data);
-    };
-    // 通知iOS
-    function calliOS() {
-      if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) {
-        var iframe = document.createElement("iframe");
-        iframe.setAttribute("src", "sensorsanalytics://getAppInfo");
-        document.documentElement.appendChild(iframe);
-        iframe.parentNode.removeChild(iframe);
-        iframe = null;
-      }
-    }
-    sd.getAppStatus = function(func){
-      calliOS();
-      //先获取能直接取到的安卓，ios是异步的不需要操作
-      getAndroid();
-      // 不传参数，直接返回数据
-      if(!func){
-        return app_info;
-        app_info = null;
-      }else{
-        //如果传参数，保存参数。如果有数据直接执行，没数据时保存
-        if(app_info === null){
-          todo = func;
-        }else{
-          func(app_info);
-          app_info = null;
-        }
-      }
-    };
+  sd.detectMode();
+
+  // iOS Safari
+  if (sd._.isIOS() && sd._.getIOSVersion() < 13 && sd.para.heatmap.collect_tags && sd.para.heatmap.collect_tags.div) {
+    sd._.setCssStyle("div, [data-sensors-click] { cursor: pointer; -webkit-tap-highlight-color: rgba(0,0,0,0); }");
   }
-
-  heatmap.prepare(function(){
-    app_js_bridge();
-    // 初始化referrer等页面属性 1.6
-    _.info.initPage();
-
-    if(sd.para.is_track_single_page){
-      _.addSinglePageEvent(function (last_url) {
-        var sendData = function(extraData) {
-          extraData = extraData || {};
-          if (last_url !== location.href) {
-            _.info.pageProp.referrer = last_url;
-            sd.quick("autoTrack", _.extend({$url: location.href, $referrer: last_url}, extraData));
-          }
-        };
-        if (typeof sd.para.is_track_single_page === "boolean") {
-          sendData();
-        } else if (typeof sd.para.is_track_single_page === "function") {
-          var returnValue = sd.para.is_track_single_page();
-          if (_.isObject(returnValue)) {
-            sendData(returnValue);
-          } else if (returnValue === true) {
-            sendData();
-          }
-        }
-      });
-    }
-    // 支持localstorage且开启了batch_send
-    if (sd.para.batch_send) {
-      sd.batchSend.batchInterval();
-    }
-    // 初始化distinct_id
-    sd.store.init();
-
-    sd.readyState.setState(3);
-//    sd.noticePluginIsReady();
-    // 发送数据
-    if(sd._q && _.isArray(sd._q) && sd._q.length > 0 ){
-      _.each(sd._q, function(content) {
-        sd[content[0]].apply(sd, Array.prototype.slice.call(content[1]));
-      });
-    }
-
-  });
-
 };
 
 var methods = ['track','quick','register','registerPage','registerOnce','trackSignup', 'setProfile','setOnceProfile','appendProfile', 'incrementProfile', 'deleteProfile', 'unsetProfile', 'identify','login','logout','trackLink','clearAllRegister'];
@@ -4588,16 +5150,27 @@ var methods = ['track','quick','register','registerPage','registerOnce','trackSi
 _.each(methods, function(method) {
   var oldFunc = sd[method];
   sd[method] = function() {
+    if (sd.readyState.state < 3) {
+      if (!_.isArray(sd._q)) {
+        sd._q = [];
+      }
+      sd._q.push([method, arguments]);
+      return false;
+    }
     if (!sd.readyState.getState()) {
       try {
         console.error('请先初始化神策JS SDK');
-      } catch (e) {}
+      } catch (e) {
+        sd.log(e);
+      }
       return;
     }
     return oldFunc.apply(sd, arguments);
   };
 });
 
+// Do not remove the following line!
+//__PLUGINS__
 
 
 if (typeof window['sensorsDataAnalytic201505'] === 'string'){
@@ -4620,7 +5193,10 @@ if (typeof window['sensorsDataAnalytic201505'] === 'string'){
 
 }catch(err){
   if (typeof console === 'object' && console.log) {
-    try {console.log(err)} catch (e) {};
+    try {console.log(err)} catch (e) {
+      sd.log(e);
+
+    };
   }
 }
 
