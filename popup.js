@@ -2506,12 +2506,13 @@
         if(!_.isNumber(property)){
           return false;
         }
-        if(typeof params[0] === "undefined"){
+        if(typeof params[0] === "undefined" && typeof params[1] === "undefined"){
           return false;
         }
         var property_value = _.getConvertNumberValue(property);
-        var params_value = _.getConvertNumberValue(params[0]);
-        return property_value >= params_value && property_value <= params_value;
+        var prev_value = _.getConvertNumberValue(params[0]);
+        var next_value = _.getConvertNumberValue(params[1]);
+        return property_value >= prev_value && property_value <= next_value;
       },
       /**
        * 包含
@@ -3051,8 +3052,10 @@
             // 有数据且版本号
             if (_.isObject(data) && data.server_current_time && data.popup_plans && /\d+\.\d+/.test(data.min_sdk_version_required) && parseFloat(data.min_sdk_version_required) <= parseFloat(popup.lib_version)) {
               popup.serverData = data;
-              // 更新拉取规则时间
-              that.interval_time = popup.serverData.config_pull_interval_ms;
+              // 更新拉取计划的间隔时间
+              if(data.config_pull_interval_ms && data.config_pull_interval_ms > 0){
+                that.interval_time = data.config_pull_interval_ms;
+              }
               // 修改localData调用save去修改
               popup.localData.local_update_time = (new Date()).getTime();
               // 开始处理数据
