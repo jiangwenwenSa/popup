@@ -482,6 +482,12 @@
         return (Object.prototype.toString.call(obj) == '[object Object]');
       }
     },
+    getConvertNumberValue:function (val){
+      if(_.isString(val)){
+        val = Number(val);
+      }
+      return Math.floor(val * 1000) / 1000;
+    },
     isArray: Array.isArray || function (obj) {
       return Object.prototype.toString.call(obj) === '[object Array]';
     },
@@ -2307,9 +2313,20 @@
         }
         // 或的关系，等于任意一个
         for(var i=0; i < params.length; i++){
-           if(property === params[i]){
+          if(!_.isNumber(params[0]) && !_.isString(params[0])){
+            return false;
+          }
+
+          if(_.isString(property)){
+            var param_item = _.isString(params[0]) ? params[0] : String(params[0]);
+            if(property === param_item){
               return true;
             }
+          } else {
+            if(_.getConvertNumberValue(property) === _.getConvertNumberValue(params[0])){
+              return true;
+            }
+          }
         }
         return false;
       },
@@ -2322,11 +2339,25 @@
         if(!_.isNumber(property) && !_.isString(property)){
           return false;
         }
-        // 不等于其中的任意一个
+        // 属性是string，params是string直接比较，params是number，将number转换为string比较
+        // 属性是number，params是number，截取小数点后三位去比较
+        // 属性是number，paras是string 将params转换number，截取小数点后三位去比较
         for(var i=0; i < params.length; i++){
-          if(property === params[i]){
-             return false;
-           }
+          if(!_.isNumber(params[0]) && !_.isString(params[0])){
+            return false;
+          }
+
+          if(_.isString(property)){
+            var param_item = _.isString(params[0]) ? params[0] : String(params[0]);
+            if(property === param_item){
+              return false;
+            }
+          } else {
+            if(_.getConvertNumberValue(property) === _.getConvertNumberValue(params[0])){
+              return false;
+            }
+          }
+          
         }
         return true;
       },
@@ -2373,14 +2404,14 @@
        * @param {string、number、data、bool、list} property 
        */
       isSet: function (property) {
-        return property !== undefined;
+        return typeof property !== "undefined";
       },
       /**
        * 没有值: 没有传这个属性
        * @param {string、number、data、bool、list} property 
        */
       notSet: function (property) {
-        return property === undefined;
+        return  typeof property === "undefined";
       },
       /**
        * 为空
@@ -2441,7 +2472,10 @@
         if(!_.isNumber(property)){
           return false;
         }
-        return property < Number(params[0]);
+        if(typeof params[0] === "undefined"){
+          return false;
+        }
+        return _.getConvertNumberValue(property) < _.getConvertNumberValue(params[0]);
       },
       /**
        * 大于
@@ -2455,7 +2489,10 @@
         if(!_.isNumber(property)){
           return false;
         }
-        return property > Number(params[0]);
+        if(typeof params[0] === "undefined"){
+          return false;
+        }
+        return _.getConvertNumberValue(property) > _.getConvertNumberValue(params[0]);
       },
       /**
        * 区间
@@ -2469,7 +2506,12 @@
         if(!_.isNumber(property)){
           return false;
         }
-        return property >= Number(params[0]) && property <= Number(params[1]);
+        if(typeof params[0] === "undefined"){
+          return false;
+        }
+        var property_value = _.getConvertNumberValue(property);
+        var params_value = _.getConvertNumberValue(params[0]);
+        return property_value >= params_value && property_value <= params_value;
       },
       /**
        * 包含
@@ -3009,6 +3051,8 @@
             // 有数据且版本号
             if (_.isObject(data) && data.server_current_time && data.popup_plans && /\d+\.\d+/.test(data.min_sdk_version_required) && parseFloat(data.min_sdk_version_required) <= parseFloat(popup.lib_version)) {
               popup.serverData = data;
+              // 更新拉取规则时间
+              that.interval_time = popup.serverData.config_pull_interval_ms;
               // 修改localData调用save去修改
               popup.localData.local_update_time = (new Date()).getTime();
               // 开始处理数据
