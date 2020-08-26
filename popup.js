@@ -7,6 +7,7 @@
     //基本信息
     info:{},
     lib_version: '0.2.2',
+    sdk_version: '0.2.3',
     //获取的配置和参数
     defaultPara:{
       platform: 'H5'    
@@ -732,26 +733,26 @@
         _.addEvent(that.maskEle, "click", function (e) {
           var target = e.target;
           var mask_ele = target.getAttribute('data-ele-mask');
-          // 有data-ele-mask属性，则表示点击的元素是遮罩层，遮罩层外层包裹了一个div，解决横屏滚动问题，所以点击遮罩层是点击到弹框外层包裹的div
+          // 点击的target是遮罩层
           if(mask_ele && that.properties.maskCloseEnabled) {
             popup.track.maskClick(that);
             return false;
           }
-
           //弹框绑定点击事件
           popup.track.elementClickCallback(e, that);
-         
         });
 
         that.maskEle.setAttribute('data-sf-mask', true);
         that.maskEle.appendChild(that.containerEle);
-
+        
         if( window.self === window.top){
           document.body.appendChild(that.maskEle);
         }else {
+          // 如果为内嵌iframe，需要在外层的h5页面弹框
           try {
             window.top.document.body.appendChild(that.maskEle);
           }catch(e){
+            //非同域名由于无法在父窗口添加dom，所以在iframe中弹框
             document.body.appendChild(that.maskEle);
           }
         }
@@ -889,7 +890,8 @@
 
       // 根节点增加z-index属性
       if (template.isRoot) {
-        template.layout.margin = "auto";
+        // 弹框居中是包括关闭按钮居中的，设置top为-40px是往上调整去掉关闭按钮的高度
+        template.layout.margin.top = "-40px";
         _.extend(style, {
           position: "relative",
           "z-index": 999999,
@@ -1269,12 +1271,13 @@
       },
       start: function(){
           var project = popup.info.project;
+          var platform = popup.info.platform;
           var popup_window_id = this.hasParam().popup_window_id;
           if(!popup_window_id){
             return false;
           }
           _.ajax({
-              url: popup.info.api_base_url + '/sfo/popup_windows/'+ popup_window_id + '?project=' + encodeURIComponent(project) + '&time=' + (new Date()).getTime(),
+              url: popup.info.api_base_url + '/sfo/popup_windows/'+ popup_window_id + '?project=' + encodeURIComponent(project) + '&time=' + (new Date()).getTime() + '&sdk_version='+ popup.sdk_version +'&platform='+ encodeURIComponent(platform),
               type: 'GET',
               credentials: false,
               cors: true,
@@ -1372,6 +1375,11 @@
       }
     }
 
+    // 检查server_url是否正确的数据接收地址
+    if(!_.isString(sa.para.server_url) || sa.para.server_url.slice(0,4) !== 'http'){
+      popup.log('server_url 必须填写有效数据接收地址');
+      return false;
+    }
 
     // project是否有效
     if(!popup.info.project){
@@ -1643,7 +1651,7 @@
           expire_time.setMinutes(59);
           expire_time.setSeconds(59);
           expire_time.setMilliseconds(999);           
-          expire_time = expire_time.getTime() + 24*60*60*1000*count;
+          expire_time = expire_time.getTime() + 24*60*60*1000*(count-1);
 
           return expire_time;
         },
@@ -1660,18 +1668,19 @@
           expire_time.setSeconds(59);
           expire_time.setMilliseconds(999);           
 
-          expire_time = expire_time.getTime() + current_week_remain*24*60*60*1000 + count*7*24*60*60*1000;
+          expire_time = expire_time.getTime() + current_week_remain*24*60*60*1000 + (count-1)*7*24*60*60*1000;
 
           return expire_time;
         },
         month: function(){
           expire_time = new Date(last_time);
           var current_month = expire_time.getMonth();
+          // getMonth返回的是0-11，所以这里count不用-1
           var expire_month = current_month + count;
-
           if(expire_month >= 11){
-            expire_time.setFullYear(expire_time.getFullYear() +  parseInt(expire_month/11));      
-            expire_time.setMonth(expire_month%11);
+            expire_time.setFullYear(expire_time.getFullYear() +  parseInt(expire_month/12)); 
+            // 一年12个月，所以取除以12的余数。     
+            expire_time.setMonth(expire_month%12);
           }else {
             expire_time.setMonth(expire_month);
           }
@@ -2813,7 +2822,7 @@
         eventQueue:[],
       };
       // 初始化间隔时间
-      if(_.isNumber(popup.localData.config_pull_interval_ms)){
+      if(_.isNumber(popup.localData.config_pull_interval_ms) && popup.localData.config_pull_interval_ms > 0){
         popup.updateDataAndSetListen.interval_time = popup.localData.config_pull_interval_ms;
       }
 
@@ -3038,7 +3047,7 @@
       var project = popup.info.project;
       return new Promise(function (res, rej) {
         _.ajax({
-          url: popup.info.api_base_url + '/sfo/user_popup_configs/'+ distinct_id +'?platform='+ encodeURIComponent(platform) + '&project=' + encodeURIComponent(project) + '&time=' + (new Date()).getTime(),
+          url: popup.info.api_base_url + '/sfo/user_popup_configs/'+ distinct_id +'?platform='+ encodeURIComponent(platform) + '&project=' + encodeURIComponent(project) + '&time=' + (new Date()).getTime() + '&sdk_version='+ popup.sdk_version,
           type: 'GET',
           cors: true,
           credentials: false,
@@ -3053,7 +3062,7 @@
             if (_.isObject(data) && data.server_current_time && data.popup_plans && /\d+\.\d+/.test(data.min_sdk_version_required) && parseFloat(data.min_sdk_version_required) <= parseFloat(popup.lib_version)) {
               popup.serverData = data;
               // 更新拉取计划的间隔时间
-              if(data.config_pull_interval_ms && data.config_pull_interval_ms > 0){
+              if(_.isNumber(data.config_pull_interval_ms) && data.config_pull_interval_ms > 0){
                 that.interval_time = data.config_pull_interval_ms;
               }
               // 修改localData调用save去修改
